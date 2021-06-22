@@ -1,9 +1,14 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import javax.persistence.*;
 
 @Entity
+@Table(name = "user_account")
+@NamedQueries({
+        @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email")
+})
 public class User extends AbstractEntity
 {
     @Column(unique = true, nullable = false)
@@ -19,7 +24,8 @@ public class User extends AbstractEntity
     //user preferences? as json or something....
 
     public User()
-    {}
+    {
+    }
 
     public String getEmail()
     {
@@ -49,5 +55,37 @@ public class User extends AbstractEntity
     public void setPassword(String password)
     {
         this.password = password;
+    }
+
+    // DO NOT DELETE! May be used in the future.
+    public void encodePassword(PasswordEncoder encoder)
+    {
+        this.password = encoder.encode(password);
+    }
+
+    public void erasePassword()
+    {
+        this.password = null;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        User user = (User) o;
+        return getId().equals(user.getId());
+    }
+
+    @Override
+    public String toString()
+    {
+        return "User{" +
+                "email='" + email + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                '}';
     }
 }
