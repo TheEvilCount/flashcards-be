@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 
 /**
  * Sends JSON back to client on authentication success.
@@ -43,8 +45,25 @@ public class CredentialsAuthenticationSuccessHandler implements AuthenticationSu
         {
             LOG.trace("Successfully authenticated user {}", username);
         }
+        //TODO addSameSiteCookieAttribute(httpServletResponse);
         LoginStatus loginStatus = new LoginStatus(true, authentication.isAuthenticated(), getUser(authentication), null);
         mapper.writeValue(httpServletResponse.getOutputStream(), loginStatus);
+    }
+
+    private void addSameSiteCookieAttribute(HttpServletResponse response)
+    {
+        Collection<String> headers = response.getHeaders(HttpHeaders.SET_COOKIE);
+        boolean firstHeader = true;
+        for (String header : headers)
+        { // there can be multiple Set-Cookie attributes
+            if (firstHeader)
+            {
+                response.setHeader(HttpHeaders.SET_COOKIE, String.format("%s; %s", header, "SameSite=Strict"));
+                firstHeader = false;
+                continue;
+            }
+            response.addHeader(HttpHeaders.SET_COOKIE, String.format("%s; %s", header, "SameSite=Strict"));
+        }
     }
 
     // On logout

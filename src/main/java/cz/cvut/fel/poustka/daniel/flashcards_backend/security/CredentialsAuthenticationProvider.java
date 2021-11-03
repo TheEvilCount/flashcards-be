@@ -5,6 +5,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.security.model.UserDetailsI
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,11 +22,10 @@ public class CredentialsAuthenticationProvider implements AuthenticationProvider
 
     private final UserDetailsService userDetailsService;
 
-    // DO NOT DELETE! May be used in the future.
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public CredentialsAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder)
+    public CredentialsAuthenticationProvider(@Qualifier("userDetailsServiceImpl") UserDetailsService userDetailsService, PasswordEncoder passwordEncoder)
     {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
@@ -43,8 +43,8 @@ public class CredentialsAuthenticationProvider implements AuthenticationProvider
         final String password = (String) authentication.getCredentials();
 
         //TODO passwords are in plain text :( no encoder is needed
-        //if (!passwordEncoder.matches(password, userDetailsImpl.getPassword()))
-        if (!password.matches(userDetailsImpl.getPassword()))
+        if (!passwordEncoder.matches(password, userDetailsImpl.getPassword()))
+        //if (!password.matches(userDetailsImpl.getPassword()))
         {
             throw new BadCredentialsException("Provided credentials don't match.");
         }

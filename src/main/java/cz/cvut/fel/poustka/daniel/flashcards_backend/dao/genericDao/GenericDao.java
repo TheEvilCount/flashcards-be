@@ -1,4 +1,4 @@
-package cz.cvut.fel.poustka.daniel.flashcards_backend.dao;
+package cz.cvut.fel.poustka.daniel.flashcards_backend.dao.genericDao;
 
 import java.util.Collection;
 import java.util.List;
@@ -9,7 +9,6 @@ import java.util.List;
  */
 public interface GenericDao<T>
 {
-
     /**
      * Finds entity instance with the specified identifier.
      * @param id Identifier

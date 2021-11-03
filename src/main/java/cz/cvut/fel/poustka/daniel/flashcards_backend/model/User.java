@@ -1,8 +1,12 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "user_account")
@@ -11,6 +15,9 @@ import javax.persistence.*;
 })
 public class User extends AbstractEntity
 {
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -20,11 +27,46 @@ public class User extends AbstractEntity
     @Column(nullable = false)
     private String password;
 
-    //registration date;
-    //user preferences? as json or something....
+    @Column(nullable = false)
+    private Date registrationDate;
+
+    /**
+     * User frontend customization configuration like left/right card rotation, colorTheme,...
+     * Its JSON object saved as String.
+     */
+    @Column(nullable = false)
+    private String preferences;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<LinkedCollection> linkedCollectionList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    private List<CardCollection> ownedCollectionList;
 
     public User()
     {
+        linkedCollectionList = new ArrayList<>();
+        ownedCollectionList = new ArrayList<>();
+    }
+
+    public User(String email, String username, String password, Date registrationDate, List<LinkedCollection> linkedCollectionList)
+    {
+        ownedCollectionList = new ArrayList<>();
+
+        if (linkedCollectionList != null)
+            this.linkedCollectionList = linkedCollectionList;
+        else
+            this.linkedCollectionList = new ArrayList<>();
+
+        this.role = Role.USER;
+        this.preferences = "";
+
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.registrationDate = registrationDate;
     }
 
     public String getEmail()
@@ -57,7 +99,26 @@ public class User extends AbstractEntity
         this.password = password;
     }
 
-    // DO NOT DELETE! May be used in the future.
+    public Date getRegistrationDate()
+    {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(Date registrationDate)
+    {
+        this.registrationDate = registrationDate;
+    }
+
+    public Role getRole()
+    {
+        return role;
+    }
+
+    public void setRole(Role role)
+    {
+        this.role = role;
+    }
+
     public void encodePassword(PasswordEncoder encoder)
     {
         this.password = encoder.encode(password);
@@ -66,6 +127,41 @@ public class User extends AbstractEntity
     public void erasePassword()
     {
         this.password = null;
+    }
+
+    public boolean isAdmin()
+    {
+        return Role.ADMIN.equals(this.role);
+    }
+
+    public String getPreferences()
+    {
+        return preferences;
+    }
+
+    public void setPreferences(String preferences)
+    {
+        this.preferences = preferences;
+    }
+
+    public List<LinkedCollection> getLinkedCollectionList()
+    {
+        return linkedCollectionList;
+    }
+
+    public void setLinkedCollectionList(List<LinkedCollection> linkedCollectionList)
+    {
+        this.linkedCollectionList = linkedCollectionList;
+    }
+
+    public List<CardCollection> getOwnedCollectionList()
+    {
+        return ownedCollectionList;
+    }
+
+    public void setOwnedCollectionList(List<CardCollection> ownedCollectionList)
+    {
+        this.ownedCollectionList = ownedCollectionList;
     }
 
     @Override

@@ -2,6 +2,7 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.security.model;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
@@ -17,12 +18,7 @@ public class UserDetailsImpl implements UserDetails
         Objects.requireNonNull(user);
         this.user = user;
         this.authorities = new HashSet<>();
-    }
-
-    public UserDetailsImpl(User user, Map<String, Object> attributes)
-    {
-        this(user);
-        this.attributes = attributes;
+        this.authorities.add(new SimpleGrantedAuthority(this.user.getRole().toString()));
     }
 
     public User getUser()

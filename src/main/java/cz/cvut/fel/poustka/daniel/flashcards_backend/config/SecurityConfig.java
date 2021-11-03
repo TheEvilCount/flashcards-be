@@ -2,6 +2,7 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.config;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CredentialsAuthenticationFailureHandler;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CredentialsAuthenticationSuccessHandler;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.service.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
     private final LogoutSuccessHandler credentialsLogoutSuccessHandler;
     private final AuthenticationProvider authenticationProvider;
 
+    private final UserDetailsServiceImpl userDetailsService;
+
     @Value("${flashcards.url}")
     private String flashcardsUrl;
 
@@ -46,12 +49,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
     public SecurityConfig(CredentialsAuthenticationFailureHandler credentialsAuthenticationFailureHandlerHandler,
                           CredentialsAuthenticationSuccessHandler credentialsAuthenticationSuccessHandlerHandler,
                           LogoutSuccessHandler credentialsLogoutSuccessHandler,
-                          AuthenticationProvider authenticationProvider)
+                          AuthenticationProvider authenticationProvider,
+                          UserDetailsServiceImpl userDetailsService)
     {
         this.credentialsAuthenticationFailureHandlerHandler = credentialsAuthenticationFailureHandlerHandler;
         this.credentialsAuthenticationSuccessHandlerHandler = credentialsAuthenticationSuccessHandlerHandler;
         this.credentialsLogoutSuccessHandler = credentialsLogoutSuccessHandler;
         this.authenticationProvider = authenticationProvider;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -91,13 +96,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
     {
         http
                 .authorizeRequests()
-                .anyRequest().permitAll().and()  /*.requiresChannel().requiresSecure();*/
+                .anyRequest().permitAll()
+                .and()  /*.requiresChannel().requiresSecure();*/
                 .exceptionHandling()
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+
                 .and()
                 .headers()
                 .frameOptions().sameOrigin()
                 .and()
+
                 .authenticationProvider(authenticationProvider)
                 .cors().and()
                 .csrf().disable()
@@ -106,13 +114,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
                 .successHandler(credentialsAuthenticationSuccessHandlerHandler)
                 .failureHandler(credentialsAuthenticationFailureHandlerHandler)
                 .loginProcessingUrl(SecurityConstants.SECURITY_CHECK_URI)
-                .usernameParameter(SecurityConstants.EMAIL_PARAM).passwordParameter(SecurityConstants.PASSWORD_PARAM)
+                .usernameParameter(SecurityConstants.EMAIL_PARAM)
+                .passwordParameter(SecurityConstants.PASSWORD_PARAM)
                 .and()
+
                 .logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher(SecurityConstants.LOGOUT_URI))
                 .logoutSuccessHandler(credentialsLogoutSuccessHandler)
-                .deleteCookies(SecurityConstants.SESSION_COOKIE_NAME)
+                .deleteCookies(COOKIES_TO_DESTROY)
                 .invalidateHttpSession(true)
+                /*
+                                .and()
+                                .rememberMe().userDetailsService(this.userDetailsService)
+                                .rememberMeCookieName(SecurityConstants.REMEMBER_ME_COOKIE_NAME)
+                                .useSecureCookie(true)
+                                .rememberMeParameter("remember")
+                                .key("uniqueAndSecret")
+                                .tokenValiditySeconds(SecurityConstants.REMEMBER_TIMEOUT)*/
+                /*.rememberMeCookieDomain(SecurityConstants.COOKIE_URI)*/
+
                 .and()
                 .sessionManagement()
                 .maximumSessions(1);
