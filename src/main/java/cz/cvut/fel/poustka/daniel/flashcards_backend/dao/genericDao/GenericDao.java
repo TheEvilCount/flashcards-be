@@ -14,7 +14,7 @@ public interface GenericDao<T>
      * @param id Identifier
      * @return Entity instance or {@code null} if no such instance exists
      */
-    T find(Integer id);
+    T find(Long id);
 
     /**
      * Finds all instances of the specified class.
@@ -52,5 +52,5 @@ public interface GenericDao<T>
      * @param id Entity identifier
      * @return {@literal true} if entity exists, {@literal false} otherwise
      */
-    boolean exists(Integer id);
+    boolean exists(Long id);
 }

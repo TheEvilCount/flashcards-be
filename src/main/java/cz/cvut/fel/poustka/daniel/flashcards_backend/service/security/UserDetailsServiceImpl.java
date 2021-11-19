@@ -1,5 +1,6 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.service.security;
 
+import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.AccountNotActivatedException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.model.UserDetailsImpl;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.UserService;
@@ -24,8 +25,11 @@ public class UserDetailsServiceImpl implements UserDetailsService
     {
         User user = userService.getUserByEmail(email);
         if (user != null)
-            return new UserDetailsImpl(user);
+            if (user.getIsActivated())
+                return new UserDetailsImpl(user);
+            else
+                throw new AccountNotActivatedException("User account with email " + email + " is not activated.");
         else
-            throw new UsernameNotFoundException("User with email " + email + " not found");
+            throw new UsernameNotFoundException("User account with email " + email + " not found.");
     }
 }

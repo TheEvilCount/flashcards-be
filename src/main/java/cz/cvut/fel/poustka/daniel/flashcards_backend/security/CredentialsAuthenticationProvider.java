@@ -42,7 +42,6 @@ public class CredentialsAuthenticationProvider implements AuthenticationProvider
         final UserDetailsImpl userDetailsImpl = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
         final String password = (String) authentication.getCredentials();
 
-        //TODO passwords are in plain text :( no encoder is needed
         if (!passwordEncoder.matches(password, userDetailsImpl.getPassword()))
         //if (!password.matches(userDetailsImpl.getPassword()))
         {

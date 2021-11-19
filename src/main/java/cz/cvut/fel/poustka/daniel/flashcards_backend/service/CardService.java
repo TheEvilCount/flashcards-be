@@ -29,7 +29,7 @@ public class CardService
     }
 
     @Transactional(readOnly = true)
-    public Card getById(int id)
+    public Card getById(Long id)
     {
         return cardDao.find(id);
     }

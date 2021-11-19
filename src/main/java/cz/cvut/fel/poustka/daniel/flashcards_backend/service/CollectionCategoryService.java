@@ -3,6 +3,7 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.service;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.CollectionCategoryDao;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.filtering.Sorting;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.CollectionCategory;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class CollectionCategoryService
 
 
     @Transactional(readOnly = true)
-    public CollectionCategory getById(int id)
+    public CollectionCategory getById(Long id)
     {
         return collectionCategoryDao.find(id);
     }
@@ -59,5 +60,15 @@ public class CollectionCategoryService
     {
         Objects.requireNonNull(collectionCategory);
         collectionCategoryDao.remove(collectionCategory);
+    }
+
+    @Transactional
+    public void update(CollectionCategory collectionCategory) throws BadRequestException, EntityAlreadyExistsException
+    {
+        Objects.requireNonNull(collectionCategory);
+
+        //TODO validation
+
+        collectionCategoryDao.update(collectionCategory);
     }
 }

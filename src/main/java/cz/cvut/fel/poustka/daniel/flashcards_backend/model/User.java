@@ -30,11 +30,18 @@ public class User extends AbstractEntity
     @Column(nullable = false)
     private Date registrationDate;
 
+    @Column(nullable = false)
+    private boolean isActivated;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user")
+    private VerificationToken verificationToken;
+
     /**
      * User frontend customization configuration like left/right card rotation, colorTheme,...
      * Its JSON object saved as String.
      */
-    @Column(nullable = false)
+    @Column
     private String preferences;
 
     @JsonIgnore
@@ -49,6 +56,9 @@ public class User extends AbstractEntity
     {
         linkedCollectionList = new ArrayList<>();
         ownedCollectionList = new ArrayList<>();
+        this.isActivated = false;
+        this.role = Role.USER;
+        this.preferences = "{}";
     }
 
     public User(String email, String username, String password, Date registrationDate, List<LinkedCollection> linkedCollectionList)
@@ -61,7 +71,8 @@ public class User extends AbstractEntity
             this.linkedCollectionList = new ArrayList<>();
 
         this.role = Role.USER;
-        this.preferences = "";
+        this.preferences = "{}";
+        this.isActivated = false;
 
         this.email = email;
         this.username = username;
@@ -164,6 +175,26 @@ public class User extends AbstractEntity
         this.ownedCollectionList = ownedCollectionList;
     }
 
+    public boolean getIsActivated()
+    {
+        return this.isActivated;
+    }
+
+    public void setIsActivated(boolean activated)
+    {
+        this.isActivated = activated;
+    }
+
+    public VerificationToken getVerificationToken()
+    {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(VerificationToken verificationToken)
+    {
+        this.verificationToken = verificationToken;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -182,6 +213,7 @@ public class User extends AbstractEntity
                 "email='" + email + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", enabled='" + isActivated + '\'' +
                 '}';
     }
 }

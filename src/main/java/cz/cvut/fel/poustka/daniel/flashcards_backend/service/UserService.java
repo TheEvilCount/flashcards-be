@@ -11,7 +11,6 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.util.Toolbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -75,19 +74,20 @@ public class UserService
     }
 
     @Transactional
-    public void update(User user) throws BadRequestException, EntityAlreadyExistsException
+    public void update(User user) throws BadRequestException
     {
-
         try
         {
             Objects.requireNonNull(user);
-            checkIfAccountAlreadyExists(user);
-            user.encodePassword(passwordEncoder);
             userDao.update(user);
         }
-        catch (DataIntegrityViolationException e)
+        catch (NullPointerException e)
         {
-            throw new BadRequestException("Invalid account details");
+            throw new BadRequestException("Updated user cannot be null");
+        }
+        catch (Exception e)
+        {
+            LOG.error("User update exception: " + e);
         }
     }
 
@@ -170,7 +170,7 @@ public class UserService
 
     private void preferencesValidation(String preferences) throws ValidationException
     {
-        if (Toolbox.isStringValidJSON(preferences))
+        if (!Toolbox.isStringValidJSON(preferences))
         {
             throw new ValidationException("UserPreferences validation exception!");
         }

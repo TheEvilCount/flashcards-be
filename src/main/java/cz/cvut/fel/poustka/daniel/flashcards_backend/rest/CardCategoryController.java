@@ -1,7 +1,9 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.rest;
 
 
+import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.CollectionCategory;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.util.RestUtils;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.CollectionCategoryService;
@@ -19,7 +21,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/collections")
+@RequestMapping("/categories")
 @PreAuthorize("permitAll()")
 public class CardCategoryController
 {
@@ -35,7 +37,7 @@ public class CardCategoryController
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CollectionCategory getGenre(@PathVariable int id)
+    public CollectionCategory getGenre(@PathVariable Long id)
     {
         CollectionCategory result = collectionCategoryService.getById(id);
 
@@ -78,7 +80,7 @@ public class CardCategoryController
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeCollectionCategory(@PathVariable Integer id)
+    public void removeCollectionCategory(@PathVariable Long id)
     {
         CollectionCategory toRemove = this.getGenre(id);
         if (toRemove == null)
@@ -89,12 +91,24 @@ public class CardCategoryController
         LOG.debug("Removed CollectionCategory {}.", toRemove);
     }
 
-    /*
-    @PutMapping("/update")
-    @PreAuthorize("isAuthenticated()")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public User changePassword(@RequestParam String oldPassword, @RequestParam String newPassword) throws ValidationException
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_ADMIN')")
+    @PutMapping("/{id}")
+    public CollectionCategory changeCollectionCategoryTitle(@PathVariable Long id, @RequestParam String newTitle) throws ValidationException
     {
-        return userService.changePassword(oldPassword, newPassword);
-    }*/
+        final CollectionCategory collectionCategory = collectionCategoryService.getById(id);
+
+        //TODO validation
+
+        collectionCategory.setTitle(newTitle);
+        try
+        {
+            collectionCategoryService.update(collectionCategory);
+        }
+        catch (BadRequestException | EntityAlreadyExistsException e)
+        {
+            e.printStackTrace();
+            //TODO error handling
+        }
+        return collectionCategory;
+    }
 }
