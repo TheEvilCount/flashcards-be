@@ -10,19 +10,18 @@ import java.util.Date;
 @Entity
 //@Table(name = "tokens")
 //@DiscriminatorColumn(name = "token_type")
-//@DiscriminatorValue(value = "1")
+//@DiscriminatorValue(value = "2")
 @NamedQueries({
-        @NamedQuery(name = "VerificationToken.findByToken", query = "SELECT t FROM VerificationToken t WHERE t.token = :token")
+        @NamedQuery(name = "PasswordResetToken.findByToken", query = "SELECT t FROM PasswordResetToken t WHERE t.token = :token")
 })
-public class VerificationToken extends Token
+public class PasswordResetToken extends Token
 {
-
-    public VerificationToken(User user)
+    public PasswordResetToken(User user)
     {
         super(user);
     }
 
-    public VerificationToken()
+    public PasswordResetToken()
     {
         super();
     }
@@ -30,15 +29,11 @@ public class VerificationToken extends Token
     @Override
     public boolean isTokenExpired()
     {
-        final long expireTime = OtherConstants.VERIFICATION_TOKEN_EXPIRE;
+        final long expireTime = OtherConstants.PASSWORD_RESET_TOKEN_EXPIRE;
         final long tempDateLong = this.createdDate.getTime() + expireTime;
         final Date expireDate = new Date(tempDateLong);
         final Date today = new Date();
-
-        //System.err.println("Time: "+expireTime);
-        //System.err.println(tempDateLong +" -> exp: "+ expireDate);
-        //System.err.println(today.getTime() +" -> today: "+ today);
-
         return today.after(expireDate);
     }
+
 }

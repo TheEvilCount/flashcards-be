@@ -16,8 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 @Service
@@ -66,7 +65,7 @@ public class UserService
         emailValidation(user.getEmail());
         usernameValidation(user.getUsername());
         preferencesValidation(user.getPreferences());
-        user.setRegistrationDate(Date.valueOf(LocalDate.now()));
+        user.setRegistrationDate(new Date());
 
         user.encodePassword(passwordEncoder);
 
@@ -155,6 +154,18 @@ public class UserService
     }
 
     @Transactional
+    public User resetPassword(String newPassword, User user) throws ValidationException
+    {
+        passwordValidation(newPassword);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userDao.update(user);
+
+        LOG.debug("Changed (with reset) password for user {}", user.getUsername());
+        return user;
+    }
+
+    @Transactional
     public User updateUserPreferences(String preferences) throws ValidationException
     {
         preferencesValidation(preferences);
@@ -178,9 +189,9 @@ public class UserService
 
     private void passwordValidation(String password) throws ValidationException
     {
-        if (password.length() <= 5 || password.length() > 100 || password.equals(password.toUpperCase()) || password.equals(password.toLowerCase()))
+        if (password.length() < 8 || password.length() > 100 || password.equals(password.toUpperCase()) || password.equals(password.toLowerCase()))
         {
-            throw new ValidationException("Password must be between 5 and 100 characters and must contains at least one lower and one upper case letter!");
+            throw new ValidationException("Password must be between 8 and 100 characters and must contains at least one lower and one upper case letter!");
         }
     }
 
@@ -189,7 +200,7 @@ public class UserService
         //if (!email.matches("/^[^\s@]+@[^\s@]+$/"))
         if (!email.contains("@"))
         {
-            throw new ValidationException("Please provide a valid email addrerss!");
+            throw new ValidationException("Please provide a valid email address!");
         }
     }
 

@@ -34,8 +34,12 @@ public class User extends AbstractEntity
     private boolean isActivated;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private VerificationToken verificationToken;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", orphanRemoval = true, optional = true, cascade = CascadeType.ALL)
+    private PasswordResetToken passwordResetToken;
 
     /**
      * User frontend customization configuration like left/right card rotation, colorTheme,...
@@ -193,6 +197,16 @@ public class User extends AbstractEntity
     public void setVerificationToken(VerificationToken verificationToken)
     {
         this.verificationToken = verificationToken;
+    }
+
+    public PasswordResetToken getPasswordResetToken()
+    {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(PasswordResetToken passwordResetToken)
+    {
+        this.passwordResetToken = passwordResetToken;
     }
 
     @Override

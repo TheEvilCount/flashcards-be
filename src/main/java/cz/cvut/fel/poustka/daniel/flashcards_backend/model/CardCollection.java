@@ -17,10 +17,10 @@ public class CardCollection extends AbstractEntity
     private String collectionColor;
 
     @Column
-    private double counterFav;
+    private long counterFav;
 
     @Column
-    private double counterDup;
+    private long counterDup;
 
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
@@ -194,7 +194,7 @@ public class CardCollection extends AbstractEntity
         return counterFav;
     }
 
-    public void setCounterFav(double counterFav)
+    public void setCounterFav(long counterFav)
     {
         this.counterFav = counterFav;
     }
@@ -204,7 +204,7 @@ public class CardCollection extends AbstractEntity
         return counterDup;
     }
 
-    public void setCounterDup(double counterDup)
+    public void setCounterDup(long counterDup)
     {
         this.counterDup = counterDup;
     }

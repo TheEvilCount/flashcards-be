@@ -1,13 +1,16 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.rest;
 
+import cz.cvut.fel.poustka.daniel.flashcards_backend.config.OtherConstants;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationException;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.model.PasswordResetToken;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.VerificationToken;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CurrentUser;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.model.UserDetailsImpl;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.EmailService;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.service.PasswordResetTokenService;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.UserService;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.VerificationTokenService;
 import org.slf4j.Logger;
@@ -22,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/users")
@@ -32,13 +36,15 @@ public class UserController
 
     private final UserService userService;
     private final VerificationTokenService verificationTokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
 
     @Autowired
-    public UserController(UserService userService, VerificationTokenService verificationTokenService, EmailService emailService)
+    public UserController(UserService userService, VerificationTokenService verificationTokenService, PasswordResetTokenService passwordResetTokenService, EmailService emailService)
     {
         this.userService = userService;
         this.verificationTokenService = verificationTokenService;
+        this.passwordResetTokenService = passwordResetTokenService;
         this.emailService = emailService;
     }
 
@@ -84,31 +90,21 @@ public class UserController
             {
                 user.getVerificationToken().setCreatedDate(new Date()); //reset creation date for expire check
                 sendVerificationEmail(user, user.getVerificationToken().getToken());
+                verificationTokenService.update(user.getVerificationToken());
+                LOG.debug("Verification token updated for user {}.", user);
             }
             else
             {
                 VerificationToken vToken = new VerificationToken(user);
                 verificationTokenService.persist(vToken);
                 sendVerificationEmail(user, vToken.getToken());
+                LOG.debug("Verification token created for user {}.", user);
             }
-            LOG.debug("Verification token resended for user {}.", user);
+            LOG.debug("Verification token resent for user {}.", user);
         }
         else
         {
             throw new BadRequestException("User account with this email does not exists or its already activated!");
-        }
-    }
-
-    private void sendVerificationEmail(User user, String token) throws MailSendException
-    {
-        try
-        {
-            //TODO send an email with activation url (with token)
-            emailService.sendMail(user.getEmail(), "Registration", "To activate your account please click here: " + "http://localhost:8081/flashcards/api/v1/users/verify?token=" + token);
-        }
-        catch (MailException e)
-        {
-            throw new MailSendException("Email sending error!");
         }
     }
 
@@ -120,12 +116,14 @@ public class UserController
     @PostMapping(value = "/verify")
     public ResponseEntity<Void> verifyAccount(@RequestParam String token) throws ValidationException, BadRequestException
     {
-        if (token != "")
+        if (!Objects.equals(token, ""))
         {
             final VerificationToken verificationToken = verificationTokenService.getByToken(token);
             if (verificationToken != null && !verificationToken.isTokenExpired())
             {
                 User user = userService.getUserByEmail(verificationToken.getUser().getEmail());
+                if (user.getIsActivated())
+                    throw new ValidationException("User account " + user.getEmail() + " is already verified");
                 user.setIsActivated(true);
                 userService.update(user);
                 return new ResponseEntity<>(HttpStatus.OK);
@@ -152,5 +150,100 @@ public class UserController
     {
         return userService.updateUserPreferences(preferences);
     }
+
+    @PreAuthorize("(anonymous)")
+    @PostMapping(value = "/lostpass")
+    @ResponseStatus(HttpStatus.OK)
+    public void lostPassword(@RequestParam String email) throws BadRequestException, ValidationException, EntityAlreadyExistsException
+    {
+        User user = userService.getUserByEmail(email);
+        if (user != null && user.getIsActivated())
+        {
+            if (user.getPasswordResetToken() != null) //check if already exist
+            {// if yes -> reset expire date
+                user.getPasswordResetToken().setCreatedDate(new Date()); //reset creation date for expire check
+                sendResetEmail(user, user.getPasswordResetToken().getToken());
+                passwordResetTokenService.update(user.getPasswordResetToken());
+                LOG.debug("Verification token updated for user {}.", user);
+            }
+            else
+            {// if not -> create new
+                PasswordResetToken rToken = new PasswordResetToken(user);
+                passwordResetTokenService.persist(rToken);
+                sendResetEmail(user, rToken.getToken());
+                LOG.debug("Reset token created for user {}.", user);
+            }
+            LOG.debug("Reset token sent for user {}.", user);
+        }
+        else
+        {
+            throw new BadRequestException("User account with this email does not exists or it is not activated!");
+        }
+    }
+
+    /**
+     * Activates newly registered account.
+     * @param token String verification token
+     */
+    @PreAuthorize("(anonymous)")
+    @PostMapping(value = "/reset")
+    public ResponseEntity<Void> resetPassword(@RequestParam String token, @RequestParam String newPassword) throws ValidationException
+    {
+        if (!Objects.equals(token, ""))
+        {
+            final PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
+            if (passwordResetToken != null && !passwordResetToken.isTokenExpired())
+            {
+                User user = userService.getUserByEmail(passwordResetToken.getUser().getEmail());
+                if (!user.getIsActivated())
+                {
+                    throw new ValidationException("User account " + user.getEmail() + " is not verified");
+                }
+                else
+                {
+                    userService.resetPassword(newPassword, user);
+                    return new ResponseEntity<>(HttpStatus.OK);
+                }
+            }
+            else
+                throw new ValidationException("Token {" + token + "} is invalid or expired reset token!");
+        }
+        else
+            throw new ValidationException("Token cannot be empty");
+    }
+
+
+    private void sendVerificationEmail(User user, String token) throws MailSendException
+    {
+        try
+        {
+            emailService.sendMail(user.getEmail(),
+                                  "Registration",
+                                  "To activate your account please click here: "
+                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_PATHS_VERIFY +
+                                          "?token=" + token);
+        }
+        catch (MailException e)
+        {
+            throw new MailSendException("Email sending error!");
+        }
+    }
+
+    private void sendResetEmail(User user, String token) throws MailSendException
+    {
+        try
+        {
+            emailService.sendMail(user.getEmail(),
+                                  "Password reset",
+                                  "To reset your password please click here: "
+                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_PATHS_RESET +
+                                          "?token=" + token);
+        }
+        catch (MailException e)
+        {
+            throw new MailSendException("Email sending error!");
+        }
+    }
+
 
 }

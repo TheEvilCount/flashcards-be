@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 
     private final UserDetailsServiceImpl userDetailsService;
 
-    @Value("${flashcards.url}")
+    @Value("${flashcards.fe.url}")
     private String flashcardsUrl;
 
     @Autowired

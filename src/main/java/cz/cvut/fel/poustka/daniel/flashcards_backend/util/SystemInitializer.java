@@ -40,6 +40,7 @@ public class SystemInitializer
     {
         TransactionTemplate txTemplate = new TransactionTemplate(txManager);
         txTemplate.execute((status) -> {
+            System.out.println("_________INIT___________");
             generateAdmin1();
             return null;
         });
@@ -52,18 +53,23 @@ public class SystemInitializer
     {
         User admin = new User();
         admin.setEmail("tt@ggg.com");
-        admin.setPassword("123456");
+        admin.setPassword("123456aA");
         admin.setUsername("Admin");
         admin.setRegistrationDate(Date.valueOf(LocalDate.now()));
         admin.setRole(Role.ADMIN);
+        admin.setIsActivated(true);
 
         try
         {
             userService.persist(admin);
             LOG.info("Generated admin user with credentials " + admin.getUsername() + "/" + admin.getEmail() + "/" + admin.getPassword());
         }
-        catch (EntityAlreadyExistsException | BadRequestException | ValidationException ignored)
+        catch (EntityAlreadyExistsException ignored)
         {
+        }
+        catch (BadRequestException | ValidationException e)
+        {
+            LOG.warn("Admin Generation error: " + e.getMessage());
         }
     }
 
