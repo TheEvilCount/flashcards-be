@@ -1,5 +1,7 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -12,6 +14,7 @@ public class CollectionCategory extends AbstractEntity
     @Column(nullable = false)
     private String title;
 
+    @JsonBackReference
     @OneToMany(mappedBy = "category")
     private List<CardCollection> collectionList;
 

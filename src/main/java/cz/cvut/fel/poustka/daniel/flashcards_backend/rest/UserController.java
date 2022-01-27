@@ -24,7 +24,9 @@ import org.springframework.mail.MailSendException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -46,6 +48,21 @@ public class UserController
         this.verificationTokenService = verificationTokenService;
         this.passwordResetTokenService = passwordResetTokenService;
         this.emailService = emailService;
+    }
+
+    //getAllUsers
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<User> getAllUsers()
+    {
+        List<User> result = userService.getAll();
+
+        if (result == null)
+        {
+            throw new EntityNotFoundException("No User was found");
+        }
+
+        return result;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -135,20 +152,21 @@ public class UserController
             throw new ValidationException("Token cannot be empty");
     }
 
-    @PutMapping("/changepass")
     @PreAuthorize("isAuthenticated()")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping("/changepass")
+    @ResponseStatus(HttpStatus.OK)
     public User changePassword(@RequestParam String oldPassword, @RequestParam String newPassword) throws ValidationException
     {
         return userService.changePassword(oldPassword, newPassword);
     }
 
-    @PutMapping("/updateprefs")
     @PreAuthorize("isAuthenticated()")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public User updatePreferences(@RequestParam String preferences) throws ValidationException
+    @PutMapping(value = "/updateprefs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public User updatePreferences(@RequestBody String preferences) throws ValidationException
     {
-        return userService.updateUserPreferences(preferences);
+        User currentUser = userService.getCurrentUser();
+        return userService.updateUserPreferences(currentUser, preferences);
     }
 
     @PreAuthorize("(anonymous)")
@@ -186,7 +204,7 @@ public class UserController
      * @param token String verification token
      */
     @PreAuthorize("(anonymous)")
-    @PostMapping(value = "/reset")
+    @PostMapping(value = "/resetpass")
     public ResponseEntity<Void> resetPassword(@RequestParam String token, @RequestParam String newPassword) throws ValidationException
     {
         if (!Objects.equals(token, ""))

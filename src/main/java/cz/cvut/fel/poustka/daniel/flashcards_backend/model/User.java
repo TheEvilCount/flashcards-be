@@ -1,5 +1,6 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -24,6 +25,7 @@ public class User extends AbstractEntity
     @Column(nullable = false)
     private String username;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -45,15 +47,15 @@ public class User extends AbstractEntity
      * User frontend customization configuration like left/right card rotation, colorTheme,...
      * Its JSON object saved as String.
      */
-    @Column
+    @Column(columnDefinition = "json")
     private String preferences;
 
-    @JsonIgnore
+    @JsonBackReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<LinkedCollection> linkedCollectionList;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    @JsonBackReference
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<CardCollection> ownedCollectionList;
 
     public User()

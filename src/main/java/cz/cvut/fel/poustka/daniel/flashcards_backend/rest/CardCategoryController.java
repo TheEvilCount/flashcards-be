@@ -67,7 +67,7 @@ public class CardCategoryController
     //add category
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> addNewCollectionCategory(@RequestBody CollectionCategory collectionCategory) throws EntityAlreadyExistsException
+    public ResponseEntity<Void> createCollectionCategory(@RequestBody CollectionCategory collectionCategory) throws EntityAlreadyExistsException
     {
         collectionCategoryService.persist(collectionCategory);
 

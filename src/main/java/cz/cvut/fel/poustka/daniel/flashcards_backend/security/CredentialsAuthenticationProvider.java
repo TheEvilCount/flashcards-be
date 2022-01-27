@@ -48,7 +48,7 @@ public class CredentialsAuthenticationProvider implements AuthenticationProvider
             throw new BadCredentialsException("Provided credentials don't match.");
         }
 
-        userDetailsImpl.eraseCredentials();
+        //userDetailsImpl.eraseCredentials(); //TODO erasing password after login??
         return SecurityUtils.setCurrentUser(userDetailsImpl);
     }
 

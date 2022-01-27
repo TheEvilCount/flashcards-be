@@ -1,5 +1,6 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -35,10 +36,11 @@ public class CardCollection extends AbstractEntity
     @ManyToOne
     private CollectionCategory category;
 
+    @JsonIgnore
     @ManyToOne
     private User owner;
 
-    @JsonIgnore
+    @JsonBackReference
     @OneToMany(mappedBy = "cardCollection", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<LinkedCollection> linkedCollectionList;
 
@@ -102,19 +104,19 @@ public class CardCollection extends AbstractEntity
         this.counterDup = 0;
     }
 
-    private CardCollection getDuplicate()
+    public CardCollection duplicate()
     {
         return new CardCollection(this);
     }
 
     //Getters & Setters
 
-    private void AddCounterDup()
+    public void AddCounterDup()
     {
         this.counterDup++;
     }
 
-    private void AddCounterFav()
+    public void AddCounterFav()
     {
         this.counterFav++;
     }

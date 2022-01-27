@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -49,6 +50,12 @@ public class UserService
     public User getCurrentUser()
     {
         return SecurityUtils.getCurrentUser();
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> getAll()
+    {
+        return this.userDao.findAll();
     }
 
     @Transactional
@@ -141,16 +148,19 @@ public class UserService
     @Transactional
     public User changePassword(String oldPassword, String newPassword) throws ValidationException
     {
-        passwordValidation(newPassword);
-
         User user = getCurrentUser();
         if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new ValidationException("Old password is not correct!");
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userDao.update(user);
+        else
+        {
+            passwordValidation(newPassword);
 
-        LOG.debug("Changed password for user {}", user.getUsername());
-        return user;
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userDao.update(user);
+
+            LOG.debug("Changed password for user {}", user.getUsername());
+            return user;
+        }
     }
 
     @Transactional
@@ -166,11 +176,9 @@ public class UserService
     }
 
     @Transactional
-    public User updateUserPreferences(String preferences) throws ValidationException
+    public User updateUserPreferences(User user, String preferences) throws ValidationException
     {
         preferencesValidation(preferences);
-
-        User user = getCurrentUser();
 
         user.setPreferences(preferences);
         userDao.update(user);

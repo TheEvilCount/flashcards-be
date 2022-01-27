@@ -79,4 +79,18 @@ public class RestExceptionHandler
         logException(e);
         return new ResponseEntity<>(errorInfo(request, e), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorInfo> mailSendException(HttpServletRequest request, SecurityException e)
+    {
+        logException(e);
+        return new ResponseEntity<>(errorInfo(request, e), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorInfo> mailSendException(HttpServletRequest request, IllegalArgumentException e)
+    {
+        logException(e);
+        return new ResponseEntity<>(errorInfo(request, e), HttpStatus.FORBIDDEN);
+    }
 }
