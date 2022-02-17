@@ -123,14 +123,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
                 .logoutSuccessHandler(credentialsLogoutSuccessHandler)
                 .deleteCookies(COOKIES_TO_DESTROY)
                 .invalidateHttpSession(true)
-                /*
-                                .and()
-                                .rememberMe().userDetailsService(this.userDetailsService)
-                                .rememberMeCookieName(SecurityConstants.REMEMBER_ME_COOKIE_NAME)
-                                .useSecureCookie(true)
-                                .rememberMeParameter("remember")
-                                .key("uniqueAndSecret")
-                                .tokenValiditySeconds(SecurityConstants.REMEMBER_TIMEOUT)*/
+
+
+                .and()
+                .rememberMe().userDetailsService(this.userDetailsService)
+                .rememberMeCookieName(SecurityConstants.REMEMBER_ME_COOKIE_NAME)
+                .useSecureCookie(true)
+                .rememberMeParameter("remember")
+                .key("uniqueAndSecret")
+                .tokenValiditySeconds(SecurityConstants.REMEMBER_TIMEOUT)
                 /*.rememberMeCookieDomain(SecurityConstants.COOKIE_URI)*/
 
                 .and()

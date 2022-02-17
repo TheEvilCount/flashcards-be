@@ -13,6 +13,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,49 +52,122 @@ public class CardCollectionService
     }
 
     @Transactional(readOnly = true)
-    public List<CardCollection> getByTitle(String title)
+    public List<CardCollection> getPublicByTitle(String title, Pageable pagination)
     {
-        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByTitle(title));
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibilityAndTitle(CardCollectionVisibility.PUBLIC, title), pagination);
     }
 
     @Transactional(readOnly = true)
-    public List<CardCollection> getAllPrivate(User user)
+    public List<CardCollection> getAllPrivate(User user, Pageable pagination)
     {
-        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibility(CardCollectionVisibility.PRIVATE, user));
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibilityUser(CardCollectionVisibility.PRIVATE, user), pagination);
     }
 
     @Transactional(readOnly = true)
-    public List<CardCollection> getAllFavourite(User user)
+    public List<CardCollection> getAllOwned(User user, Pageable pagination)
     {
-        //return user.getLinkedCollectionList().stream().map(LinkedCollection::getCardCollection).toList();
-        return linkedCollectionDao.findAll(new Sorting(), LinkedCollectionDao.WhereLinkedToUser(user)).stream().map(LinkedCollection::getCardCollection).toList();
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByUserOwned(user), pagination);
     }
 
     @Transactional(readOnly = true)
-    public List<CardCollection> getAllPublic() throws UsernameNotFoundException
+    public List<CardCollection> getAllFavourite(User user, Pageable pagination)
     {
-        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibility(CardCollectionVisibility.PUBLIC));
+        return getLinkedCollections(user, pagination).stream().map(LinkedCollection::getCardCollection).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LinkedCollection> getLinkedCollections(User user, Pageable pagination)
+    {
+        return linkedCollectionDao.findAll(
+                new Sorting(),
+                LinkedCollectionDao.WhereLinkedToUser(user),
+                pagination
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public LinkedCollection getLinkedCollection(User user, Long id)
+    {
+        return linkedCollectionDao.findAll(
+                        new Sorting(),
+                        LinkedCollectionDao.WhereLinkedToUser(user),
+                        Pageable.unpaged()
+                ).stream()
+                .parallel()
+                .filter(linkedCollection -> linkedCollection.getCardCollection().getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CardCollection> getAllPublic(Pageable pagination) throws UsernameNotFoundException
+    {
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibility(CardCollectionVisibility.PUBLIC), pagination);
     }
 
     //TODO add filtering by category
 
     @Transactional
-    public void addToFavorite(CardCollection cardCollection, User user)
+    public void addToFavorite(CardCollection cardCollection, User user) throws ValidationException
     {
-        //TODO
+        //validation if user don't already have this collection in favourite
+        List<LinkedCollection> linkedCollectionList = linkedCollectionDao.findAll(new Sorting(), LinkedCollectionDao.ByUserAndCollection(cardCollection, user));
+        if (linkedCollectionList.size() > 0)
+            throw new ValidationException("User already has this collection in favourites");
+
+        //TODO validation if user is not owner of this collection
+        if (cardCollection.getOwner().equals(user))
+            throw new ValidationException("User is owner of this collection. Cannot add to favourites");
+
+        //Create new linked collection and assign it to user
+        LinkedCollection linkedCollection = new LinkedCollection();
+        linkedCollection.setCardCollection(cardCollection);
+        linkedCollection.setUser(user);
+
+        linkedCollectionDao.persist(linkedCollection);
+
+        cardCollection.AddCounterFav();
+        cardCollectionDao.update(cardCollection);
     }
 
     @Transactional
-    public void duplicateCollectionForUser(CardCollection cardCollection, User user)
+    public void duplicateCollectionForUser(CardCollection cardCollection, User user) throws ValidationException, EntityAlreadyExistsException, BadRequestException
     {
-        //TODO
+        cardCollection.AddCounterDup();
+
+        CardCollection collection = cardCollection.duplicate();
+        collection.setVisibility(CardCollectionVisibility.PRIVATE);
+        collection.setOwner(user);
+        collection.setCounterDup(0);
+        collection.setCounterFav(0);
+
+        collection.setId(null);
+        cardCollectionDao.persist(collection);
+
+        this.persist(collection, user);
     }
 
     @Transactional
     public void changeVisibilityToPrivate(CardCollection cardCollection)
     {
-        //TODO check if no other user is linked. if yes then duplicate as private for all users
+        List<LinkedCollection> linkedCollectionList = linkedCollectionDao.findAll(new Sorting(), LinkedCollectionDao.ByCollection(cardCollection));
+
         changeVisibility(cardCollection, CardCollectionVisibility.PRIVATE);
+        long duplicationNumBCP = cardCollection.getCounterDup();
+        if (linkedCollectionList.size() > 0)
+        {
+            linkedCollectionList.forEach(linkedCollection -> {
+                try
+                {
+                    duplicateCollectionForUser(linkedCollection.getCardCollection(), linkedCollection.getUser());
+                }
+                catch (ValidationException | EntityAlreadyExistsException | BadRequestException e)
+                {
+                    e.printStackTrace();
+                }
+            });
+        }
+        cardCollection.setCounterDup(duplicationNumBCP);
     }
 
     @Transactional
@@ -130,9 +204,7 @@ public class CardCollectionService
     public void update(CardCollection cardCollection) throws BadRequestException, EntityAlreadyExistsException
     {
         Objects.requireNonNull(cardCollection);
-
-        //TODO validation
-
+        cardCollectionValidation(cardCollection);
         cardCollectionDao.update(cardCollection);
     }
 
@@ -166,6 +238,13 @@ public class CardCollectionService
             }
             cardCollectionDao.remove(cardCollection);
         }
+    }
+
+    @Transactional
+    public void delete(LinkedCollection linkedCollection)
+    {
+        Objects.requireNonNull(linkedCollection);
+        linkedCollectionDao.remove(linkedCollection);
     }
 
     // validation

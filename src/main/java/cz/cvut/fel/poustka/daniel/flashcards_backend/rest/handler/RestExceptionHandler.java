@@ -1,4 +1,4 @@
-package cz.cvut.fel.poustka.daniel.flashcards_backend.service.handler;
+package cz.cvut.fel.poustka.daniel.flashcards_backend.rest.handler;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;

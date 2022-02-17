@@ -2,6 +2,7 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.environment;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.Role;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
+import net.bytebuddy.utility.RandomString;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -9,7 +10,6 @@ import java.util.Random;
 
 public class Generator
 {
-
     private static final Random RAND = new Random();
 
     public static int randomInt()
@@ -31,6 +31,11 @@ public class Generator
         user.setRegistrationDate(Date.valueOf(LocalDate.now()));
         user.setRole(role);
         return user;
+    }
+
+    public static String randomString(Integer length)
+    {
+        return RandomString.make(length);
     }
 /*
     public static Country generateCountry() {

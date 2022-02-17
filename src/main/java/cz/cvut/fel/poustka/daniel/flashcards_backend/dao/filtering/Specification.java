@@ -8,6 +8,10 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
 
+@Deprecated
+/**
+ * Not used. Now using org.springframework.data.jpa.domain.Specification
+ */
 public interface Specification<T> extends Serializable
 {
     @Nullable

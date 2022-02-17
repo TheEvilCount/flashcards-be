@@ -45,8 +45,10 @@ public class CredentialsAuthenticationSuccessHandler implements AuthenticationSu
         {
             LOG.trace("Successfully authenticated user {}", username);
         }
-        //TODO addSameSiteCookieAttribute(httpServletResponse);
+        addSameSiteCookieAttribute(httpServletResponse);
         LoginStatus loginStatus = new LoginStatus(true, authentication.isAuthenticated(), getUser(authentication), null);
+
+        httpServletResponse.setHeader("Content-Type", "application/json");
         mapper.writeValue(httpServletResponse.getOutputStream(), loginStatus);
     }
 
@@ -76,6 +78,7 @@ public class CredentialsAuthenticationSuccessHandler implements AuthenticationSu
             LOG.trace("Successfully logged out user {}", getEmail(authentication));
         }
         LoginStatus loginStatus = new LoginStatus(false, true, null, null);
+        httpServletResponse.setHeader("Content-Type", "application/json");
         mapper.writeValue(httpServletResponse.getOutputStream(), loginStatus);
     }
 

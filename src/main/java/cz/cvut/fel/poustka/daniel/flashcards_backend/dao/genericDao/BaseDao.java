@@ -2,7 +2,8 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.dao.genericDao;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.filtering.OrderType;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.filtering.Sorting;
-import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.filtering.Specification;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -114,12 +115,53 @@ public abstract class BaseDao<T> implements GenericDao<T>, SpecialDao<T>
     }
 
     @Override
-    public T find(Sorting sorting, Specification<T> s)
+    public T find(Sorting sorting, Specification s)
     {
         List<T> list = findAll(sorting, s);
         if (list.isEmpty())
             return null;
         return list.get(0);
+    }
+
+
+    /**
+     * Find all with sorting, specification and pagination
+     * @param sorting
+     * @param s
+     * @param pagination
+     * @return
+     */
+    @Override
+    public List<T> findAll(Sorting sorting, Specification<T> s, Pageable pagination)
+    {
+        try
+        {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<T> q = cb.createQuery(type);
+            Root<T> r = q.from(type);
+
+            q.select(r).where(s.toPredicate(r, q, cb));
+
+            if (sorting.getOrderType().equals(OrderType.DESCENDING))
+                q.orderBy(cb.desc(r.get(sorting.getColumnToOrderBy())));
+            else
+                q.orderBy(cb.asc(r.get(sorting.getColumnToOrderBy())));
+
+            TypedQuery<T> query = em.createQuery(q);
+
+            //pagination
+            if (!pagination.isUnpaged())
+            {
+                query.setFirstResult((pagination.getPageNumber() - 1) * pagination.getPageSize());
+                query.setMaxResults(pagination.getPageSize());
+
+            }
+            return query.getResultList();
+        }
+        catch (NoResultException e)
+        {
+            return null;
+        }
     }
 
     @Override
@@ -147,4 +189,5 @@ public abstract class BaseDao<T> implements GenericDao<T>, SpecialDao<T>
             return null;
         }
     }
+
 }

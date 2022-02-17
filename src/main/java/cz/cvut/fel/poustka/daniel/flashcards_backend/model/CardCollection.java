@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,7 +31,8 @@ public class CardCollection extends AbstractEntity
     @Column(nullable = false)
     private Date creationDate;
 
-    @OneToMany(mappedBy = "collection", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @JsonIgnore
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Card> cardList;
 
     @ManyToOne
@@ -92,24 +94,34 @@ public class CardCollection extends AbstractEntity
 
     public CardCollection(CardCollection cardCollection)
     {
+        //this.setId(null);
         this.title = cardCollection.getTitle();
         this.collectionColor = cardCollection.getCollectionColor();
         this.owner = cardCollection.getOwner();
-        this.cardList = cardCollection.getCardList();
         this.visibility = cardCollection.getVisibility();
-        this.linkedCollectionList = cardCollection.getLinkedCollectionList();
         this.category = cardCollection.getCategory();
+
+        this.creationDate = java.sql.Date.valueOf(LocalDate.now());
+
+        this.linkedCollectionList = new ArrayList<>();//cardCollection.getLinkedCollectionList();
+
+        this.cardList = new ArrayList<>();
+        //cardList.addAll(cardCollection.getCardList());
+        cardCollection.getCardList().forEach(card -> this.cardList.add(card.duplicate(this)));
 
         this.counterFav = 0;
         this.counterDup = 0;
+    }
+
+    public Card getCardById(Long cardId)
+    {
+        return this.cardList.stream().filter(card -> card.getId() == cardId).findFirst().orElse(null);
     }
 
     public CardCollection duplicate()
     {
         return new CardCollection(this);
     }
-
-    //Getters & Setters
 
     public void AddCounterDup()
     {
@@ -119,6 +131,15 @@ public class CardCollection extends AbstractEntity
     public void AddCounterFav()
     {
         this.counterFav++;
+    }
+
+    //Getters & Setters
+
+    public Integer getCardCount()
+    {
+        if (this.cardList == null)
+            this.cardList = new ArrayList<>();
+        return this.cardList.size();
     }
 
     public String getTitle()
@@ -191,7 +212,7 @@ public class CardCollection extends AbstractEntity
         this.linkedCollectionList = linkedCollectionList;
     }
 
-    public double getCounterFav()
+    public long getCounterFav()
     {
         return counterFav;
     }
@@ -201,7 +222,7 @@ public class CardCollection extends AbstractEntity
         this.counterFav = counterFav;
     }
 
-    public double getCounterDup()
+    public long getCounterDup()
     {
         return counterDup;
     }

@@ -13,7 +13,7 @@ public class SecurityConstants
     /**
      * Session timeout in seconds.
      */
-    public static final int SESSION_TIMEOUT = 30 * 60 * 1000;
+    public static final int SESSION_TIMEOUT = 60 * 60 * 24;
     public static final int REMEMBER_TIMEOUT = 60 * 60 * 24 * 2;
 
     private SecurityConstants()

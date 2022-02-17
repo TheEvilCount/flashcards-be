@@ -7,6 +7,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationExcept
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.PasswordResetToken;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.VerificationToken;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.RegisterDTO;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CurrentUser;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.model.UserDetailsImpl;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.EmailService;
@@ -74,13 +75,18 @@ public class UserController
 
     /**
      * Registers a new user.
-     * @param user User data
+     * @param userReq RegisterDTO data
      */
-    @PreAuthorize("(!#user.isAdmin() && anonymous) || hasRole('ROLE_ADMIN')")
+    @PreAuthorize("anonymous")//@PreAuthorize("(!#user.isAdmin() && anonymous) || hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> registerAccount(@RequestBody User user) throws EntityAlreadyExistsException, BadRequestException, ValidationException
+    public ResponseEntity<Void> registerAccount(@RequestBody RegisterDTO userReq) throws EntityAlreadyExistsException, BadRequestException, ValidationException
     {
-        LOG.debug("registering...{}", user.getUsername());
+        LOG.debug("registering...{}", userReq.getUsername());
+        User user = new User();
+        user.setPassword(userReq.getPassword());
+        user.setUsername(userReq.getUsername());
+        user.setEmail(userReq.getEmail());
+
         userService.persist(user);
 
         VerificationToken vToken = new VerificationToken(user);

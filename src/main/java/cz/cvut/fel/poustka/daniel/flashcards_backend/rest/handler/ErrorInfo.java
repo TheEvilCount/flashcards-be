@@ -1,4 +1,4 @@
-package cz.cvut.fel.poustka.daniel.flashcards_backend.service.handler;
+package cz.cvut.fel.poustka.daniel.flashcards_backend.rest.handler;
 
 /**
  * Contains information about an error and can be send to client as JSON to let them know what went wrong.

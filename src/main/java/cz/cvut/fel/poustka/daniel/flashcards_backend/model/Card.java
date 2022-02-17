@@ -30,6 +30,16 @@ public class Card extends AbstractEntity
     {
     }
 
+    public Card duplicate(CardCollection collection)
+    {
+        Card newCard = new Card();
+        newCard.setId(null);
+        newCard.setFrontText(this.getFrontText());
+        newCard.setBackText(this.getBackText());
+        newCard.setCollection(collection);
+        return newCard;
+    }
+
     public String getFrontText()
     {
         return frontText;

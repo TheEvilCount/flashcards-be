@@ -42,6 +42,12 @@ public class CollectionCategoryService
         return this.collectionCategoryDao.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public CollectionCategory getByTitle(String title)
+    {
+        return this.collectionCategoryDao.find(new Sorting(), CollectionCategoryDao.ByTitle(title));
+    }
+
     @Transactional
     public void persist(CollectionCategory collectionCategory) throws EntityAlreadyExistsException
     {
