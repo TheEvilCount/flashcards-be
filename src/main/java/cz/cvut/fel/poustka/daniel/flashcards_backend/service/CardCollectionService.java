@@ -58,9 +58,36 @@ public class CardCollectionService
     }
 
     @Transactional(readOnly = true)
+    public List<CardCollection> getPublicByTitle(String title, Pageable pagination, User user)
+    {
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibilityAndTitleAndNotOwnedByUser(CardCollectionVisibility.PUBLIC, title, user), pagination);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getNumberOfPublicByTitle(String title)
+    {
+        return cardCollectionDao.findNumberOf(CardCollectionDao.ByVisibilityAndTitle(CardCollectionVisibility.PUBLIC, title));
+    }
+
+    @Transactional(readOnly = true)
+    /**
+     * Returns number of public collections where user is not the owner filtered by title
+     */
+    public Long getNumberOfPublicByTitle(String title, User user)
+    {
+        return cardCollectionDao.findNumberOf(CardCollectionDao.ByVisibilityAndTitleAndNotOwnedByUser(CardCollectionVisibility.PUBLIC, title, user));
+    }
+
+    @Transactional(readOnly = true)
     public List<CardCollection> getAllPrivate(User user, Pageable pagination)
     {
         return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibilityUser(CardCollectionVisibility.PRIVATE, user), pagination);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getNumberOfAllPrivate(User user)
+    {
+        return cardCollectionDao.findNumberOf(CardCollectionDao.ByVisibilityUser(CardCollectionVisibility.PRIVATE, user));
     }
 
     @Transactional(readOnly = true)
@@ -70,9 +97,21 @@ public class CardCollectionService
     }
 
     @Transactional(readOnly = true)
+    public Long getNumberOfAllOwned(User user)
+    {
+        return cardCollectionDao.findNumberOf(CardCollectionDao.ByUserOwned(user));
+    }
+
+    @Transactional(readOnly = true)
     public List<CardCollection> getAllFavourite(User user, Pageable pagination)
     {
         return getLinkedCollections(user, pagination).stream().map(LinkedCollection::getCardCollection).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Long getNumberOfAllFavourite(User user)
+    {
+        return linkedCollectionDao.findNumberOf(LinkedCollectionDao.WhereLinkedToUser(user));
     }
 
     @Transactional(readOnly = true)
@@ -103,6 +142,21 @@ public class CardCollectionService
     public List<CardCollection> getAllPublic(Pageable pagination) throws UsernameNotFoundException
     {
         return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibility(CardCollectionVisibility.PUBLIC), pagination);
+    }
+
+    @Transactional(readOnly = true)
+    /**
+     * Return all public collections without public collections created by current user
+     */
+    public List<CardCollection> getAllPublic(Pageable pagination, User user) throws UsernameNotFoundException
+    {
+        return cardCollectionDao.findAll(new Sorting(), CardCollectionDao.ByVisibilityAndUserNotOwned(CardCollectionVisibility.PUBLIC, user), pagination);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getNumberOfAllPublic()
+    {
+        return cardCollectionDao.findNumberOf(CardCollectionDao.ByVisibility(CardCollectionVisibility.PUBLIC));
     }
 
     //TODO add filtering by category

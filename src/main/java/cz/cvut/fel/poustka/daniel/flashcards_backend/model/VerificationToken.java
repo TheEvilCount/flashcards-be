@@ -28,7 +28,7 @@ public class VerificationToken extends Token
     }
 
     @Override
-    public boolean isTokenExpired()
+    public boolean isTokenValid()
     {
         final long expireTime = OtherConstants.VERIFICATION_TOKEN_EXPIRE;
         final long tempDateLong = this.createdDate.getTime() + expireTime;
@@ -39,6 +39,6 @@ public class VerificationToken extends Token
         //System.err.println(tempDateLong +" -> exp: "+ expireDate);
         //System.err.println(today.getTime() +" -> today: "+ today);
 
-        return today.after(expireDate);
+        return !today.after(expireDate);
     }
 }

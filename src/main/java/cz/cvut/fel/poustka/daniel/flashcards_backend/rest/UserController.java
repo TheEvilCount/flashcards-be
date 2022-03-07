@@ -7,6 +7,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationExcept
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.PasswordResetToken;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.VerificationToken;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.PreferenciesDTO;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.RegisterDTO;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CurrentUser;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.model.UserDetailsImpl;
@@ -79,7 +80,8 @@ public class UserController
      */
     @PreAuthorize("anonymous")//@PreAuthorize("(!#user.isAdmin() && anonymous) || hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> registerAccount(@RequestBody RegisterDTO userReq) throws EntityAlreadyExistsException, BadRequestException, ValidationException
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerAccount(@RequestBody RegisterDTO userReq) throws EntityAlreadyExistsException, BadRequestException, ValidationException
     {
         LOG.debug("registering...{}", userReq.getUsername());
         User user = new User();
@@ -98,7 +100,7 @@ public class UserController
         //final HttpHeaders headers = RestUtils.createLocationHeaderFromCurrentUri("/current", user);
         //final HttpHeaders headers = RestUtils.createLocationHeaderFromCurrentUri("/login");
         //return new ResponseEntity<>(headers, HttpStatus.CREATED);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        //return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PreAuthorize("(anonymous)")
@@ -142,7 +144,7 @@ public class UserController
         if (!Objects.equals(token, ""))
         {
             final VerificationToken verificationToken = verificationTokenService.getByToken(token);
-            if (verificationToken != null && !verificationToken.isTokenExpired())
+            if (verificationToken != null && verificationToken.isTokenValid())
             {
                 User user = userService.getUserByEmail(verificationToken.getUser().getEmail());
                 if (user.getIsActivated())
@@ -169,10 +171,10 @@ public class UserController
     @PreAuthorize("isAuthenticated()")
     @PutMapping(value = "/updateprefs", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public User updatePreferences(@RequestBody String preferences) throws ValidationException
+    public User updatePreferences(@RequestBody PreferenciesDTO preferencesDTO) throws ValidationException
     {
         User currentUser = userService.getCurrentUser();
-        return userService.updateUserPreferences(currentUser, preferences);
+        return userService.updateUserPreferences(currentUser, preferencesDTO.getPreferences().toString());
     }
 
     @PreAuthorize("(anonymous)")
@@ -216,7 +218,7 @@ public class UserController
         if (!Objects.equals(token, ""))
         {
             final PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
-            if (passwordResetToken != null && !passwordResetToken.isTokenExpired())
+            if (passwordResetToken != null && passwordResetToken.isTokenValid())
             {
                 User user = userService.getUserByEmail(passwordResetToken.getUser().getEmail());
                 if (!user.getIsActivated())
@@ -226,6 +228,9 @@ public class UserController
                 else
                 {
                     userService.resetPassword(newPassword, user);
+                    passwordResetToken.invalidateToken();
+                    passwordResetTokenService.update(passwordResetToken);
+
                     return new ResponseEntity<>(HttpStatus.OK);
                 }
             }

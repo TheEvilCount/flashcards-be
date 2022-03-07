@@ -41,9 +41,22 @@ public class CardCollectionDao extends BaseDao<CardCollection>
         };
     }
 
+    public static Specification<CardCollection> ByUserNotOwned(User user)
+    {
+        return (root, query, cb) -> {
+            query.distinct(true);
+            return cb.notEqual(root.get(CardCollection_.OWNER), user);
+        };
+    }
+
     public static Specification<CardCollection> ByVisibilityUser(CardCollectionVisibility visibility, User user)
     {
         return Specification.where(ByVisibilityUser(visibility, user)).and(ByUserOwned(user));
+    }
+
+    public static Specification<CardCollection> ByVisibilityAndUserNotOwned(CardCollectionVisibility visibility, User user)
+    {
+        return Specification.where(ByVisibility(visibility).and(ByUserNotOwned(user)));
     }
 
     public static Specification<CardCollection> ByVisibilityUserAndTitle(CardCollectionVisibility visibility, User user, String title)
@@ -54,5 +67,10 @@ public class CardCollectionDao extends BaseDao<CardCollection>
     public static Specification<CardCollection> ByVisibilityAndTitle(CardCollectionVisibility visibility, String title)
     {
         return Specification.where(ByVisibility(visibility)).and(ByTitle(title));
+    }
+
+    public static Specification<CardCollection> ByVisibilityAndTitleAndNotOwnedByUser(CardCollectionVisibility visibility, String title, User user)
+    {
+        return Specification.where(ByVisibility(visibility)).and(ByTitle(title)).and(ByUserNotOwned(user));
     }
 }

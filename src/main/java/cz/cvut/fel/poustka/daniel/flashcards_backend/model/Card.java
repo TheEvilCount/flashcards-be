@@ -19,13 +19,6 @@ public class Card extends AbstractEntity
     @ManyToOne
     private CardCollection collection;
 
-    public Card(String frontText, String backText, CardCollection collection)
-    {
-        this.frontText = frontText;
-        this.backText = backText;
-        this.collection = collection;
-    }
-
     public Card()
     {
     }

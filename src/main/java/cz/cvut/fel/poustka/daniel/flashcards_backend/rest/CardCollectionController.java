@@ -4,8 +4,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestExcept
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.*;
-import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.CollectionDTO;
-import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.CollectionUpdateDTO;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.dto.*;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.rest.util.RestUtils;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.CardCollectionService;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.CardService;
@@ -55,83 +54,129 @@ public class CardCollectionController
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public CardCollection getCollection(@PathVariable Long id)
+    public CollectionDetailDTO getCollectionDetail(@PathVariable Long id)
     {
         User currentUser = userService.getCurrentUser();
         CardCollection cardCollection = cardCollectionService.getById(id);
 
-        if (!cardCollection.getOwner().equals(currentUser) ||
-                !cardCollection.getVisibility().equals(CardCollectionVisibility.PUBLIC))
+        if (!(cardCollection.getOwner().equals(currentUser) || cardCollection.getVisibility().equals(CardCollectionVisibility.PUBLIC)))
         {
             throw new SecurityException("User is not an owner of this collection or collection is not public!");
         }
-        return cardCollection;
+        return convertToCollectionDetailDto(cardCollection);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "")
     @ResponseStatus(HttpStatus.OK)
-    public List<CollectionDTO> getCollections(
+    public CollectionWithPgDTO getCollections(
             @RequestParam Integer type,
-            @RequestParam(required = false) Integer p,
-            @RequestParam(required = false) Integer ps)
+            @RequestParam(required = false, defaultValue = "0") Integer p,
+            @RequestParam(required = false, defaultValue = "0") Integer ps)
     {
         User currentUser = userService.getCurrentUser();
 
-        CardCollectionVisibility requestedType;
+        CardCollectionVisibility requestedType = CardCollectionVisibility.getByValue(type);
         //Check if requested type of collections exists
 
-        requestedType = CardCollectionVisibility.getByValue(type);
-        LOG.debug("get collections - type: " + requestedType);
-
+        boolean isPaginated = (!p.equals(0) && !ps.equals(0));
         Pageable pagination;
-        if (p == null || ps == null)
-            pagination = Pageable.unpaged();
-        else
+        if (isPaginated)
             pagination = PageRequest.of(p, ps);
-        LOG.debug("pagination: " + pagination);
+        else
+            pagination = Pageable.unpaged();
+        LOG.error("get collections - isPaginated: " + isPaginated + ", type: " + requestedType + ", pagination: " + pagination);
         List<CardCollection> toReturn;
+        long totalItems = 0;
         switch (requestedType)
         {
             default:
             case PUBLIC:
-                toReturn = cardCollectionService.getAllPublic(pagination);
+                //toReturn = cardCollectionService.getAllPublic(pagination, currentUser); //without owned
+                toReturn = cardCollectionService.getAllPublic(pagination); //with owned
+                totalItems = isPaginated ? cardCollectionService.getNumberOfAllPublic() : 0;
                 break;
             case PRIVATE:
                 //toReturn = cardCollectionService.getAllPrivate(currentUser, pagination); //this return all owned private
                 toReturn = cardCollectionService.getAllOwned(currentUser, pagination); //this return all owned private
+                totalItems = isPaginated ? cardCollectionService.getNumberOfAllOwned(currentUser) : 0;
                 break;
             case LINKED:
                 toReturn = cardCollectionService.getAllFavourite(currentUser, pagination);
+                totalItems = isPaginated ? cardCollectionService.getNumberOfAllFavourite(currentUser) : 0;
                 break;
         }
-        return toReturn.parallelStream().map(this::convertToDto).toList();
+
+        return getCollectionWithPgDTO(p, ps, isPaginated, toReturn, totalItems);
+    }
+
+    private CollectionWithPgDTO getCollectionWithPgDTO(
+            @RequestParam(required = false) Integer p, @RequestParam(required = false) Integer ps,
+            boolean isPaginated, List<CardCollection> toReturn, Long totalItems)
+    {
+        CollectionWithPgDTO ret = new CollectionWithPgDTO();
+        ret.setCollections(toReturn.parallelStream().map(this::convertToDto).toList());
+        ret.setPage(p);
+        ret.setPageSize(ps);
+        if (!isPaginated)
+        {
+            if (totalItems <= ps)
+            {
+                ret.setMaxPages(1);
+            }
+            else if ((totalItems % ps) == 0)
+            {
+                ret.setMaxPages(Math.toIntExact(totalItems / ps));
+            }
+            else
+            {
+                ret.setMaxPages(Math.toIntExact((totalItems / ps) + 1));
+            }
+        }
+        else
+            ret.setMaxPages(null);
+        return ret;
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/discover")
     @ResponseStatus(HttpStatus.OK)
-    public List<CollectionDTO> discoverCollections(
+    public CollectionWithPgDTO discoverCollections(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Integer p,
             @RequestParam(required = false) Integer ps)
     {
-
+        boolean isPaginated = (p == null || ps == null);
         Pageable pagination;
-        if (p == null || ps == null)
+        if (isPaginated)
             pagination = Pageable.unpaged();
         else
             pagination = PageRequest.of(p, ps);
 
-        List<CardCollection> toReturn = cardCollectionService.getPublicByTitle(title, pagination);
-        return toReturn.parallelStream().map(this::convertToDto).toList();
+        User currentUser = userService.getCurrentUser();
+
+        //List<CardCollection> toReturn = cardCollectionService.getPublicByTitle(title, pagination); //with owned
+        List<CardCollection> toReturn = cardCollectionService.getPublicByTitle(title, pagination, currentUser);
+        long totalItems = cardCollectionService.getNumberOfPublicByTitle(title, currentUser);
+
+        return getCollectionWithPgDTO(p, ps, isPaginated, toReturn, totalItems);
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createCardCollection(@RequestBody CardCollection cardCollection) throws EntityAlreadyExistsException, ValidationException, BadRequestException
+    public ResponseEntity<Void> createCardCollection(@RequestBody CollectionCreateDTO collectionDTO) throws EntityAlreadyExistsException, ValidationException, BadRequestException
     {
         User currentUser = userService.getCurrentUser();
+
+        CollectionCategory collectionCategory = collectionCategoryService.getByTitle(collectionDTO.getCategory());
+        if (collectionCategory == null)
+            throw new EntityNotFoundException("Category not found");
+
+        CardCollection cardCollection = new CardCollection();
+        cardCollection.setTitle(collectionDTO.getTitle());
+        cardCollection.setCollectionColor(collectionDTO.getCollectionColor());
+        cardCollection.setVisibility(CardCollectionVisibility.valueOf(collectionDTO.getVisibility()));
+        cardCollection.setCategory(collectionCategory);
 
         cardCollectionService.persist(cardCollection, currentUser);
 
@@ -241,7 +286,6 @@ public class CardCollectionController
         LOG.debug("Collection {} successfully duplicated.", collection);
     }
 
-    //TODO update
     @PreAuthorize("isAuthenticated()")
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
@@ -275,6 +319,7 @@ public class CardCollectionController
 
     //TODO --------- cards within collection
 
+    //Only cards
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/{collectionId}/cards")
     public List<Card> getCardsInCardCollection(@PathVariable Long collectionId)
@@ -324,6 +369,54 @@ public class CardCollectionController
             throw new SecurityException("User is not owner of the collection or collection is not public");
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping(value = "/{collectionId}/cards/{cardId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteCardInCardCollection(@PathVariable Long collectionId, @PathVariable Long cardId) throws EntityAlreadyExistsException, BadRequestException
+    {
+        CardCollection collectionWithCardToRemove = cardCollectionService.getById(collectionId);
+        if (collectionWithCardToRemove == null)
+        {
+            throw new EntityNotFoundException("Collection of deleting card not found!");
+        }
+
+        User currentUser = userService.getCurrentUser();
+
+        if (!collectionWithCardToRemove.getOwner().equals(currentUser))
+            throw new SecurityException("User is not an owner of collection where is located card to delete!");
+
+        Card cardToRemove = cardService.getById(cardId);
+        cardService.delete(cardToRemove);
+        //collectionWithCardToRemove.setCardList(collectionWithCardToRemove.getCardList());
+        //cardCollectionService.update(collectionWithCardToRemove);
+        LOG.debug("Removed card within Collection {}.", collectionWithCardToRemove);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping(value = "/{collectionId}/cards/{cardId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateCardInCollection(@PathVariable Long collectionId, @PathVariable Long cardId, @RequestBody CardDTO card) throws ValidationException, EntityAlreadyExistsException, BadRequestException
+    {
+        CardCollection collectionWithCardToRemove = cardCollectionService.getById(collectionId);
+        if (collectionWithCardToRemove == null)
+        {
+            throw new EntityNotFoundException("Collection not found!");
+        }
+
+        User currentUser = userService.getCurrentUser();
+
+        if (!collectionWithCardToRemove.getOwner().equals(currentUser))
+            throw new SecurityException("User is not an owner of collection where is located card to delete!");
+
+        Card toUpdate = cardService.getById(cardId);
+
+        toUpdate.setBackText(card.getBackText());
+        toUpdate.setFrontText(card.getFrontText());
+
+        cardService.update(toUpdate);
+        LOG.debug("Updated Card {}.", toUpdate);
+    }
+
 
     //________DTOs_________
     private CollectionDTO convertToDto(CardCollection cardCollection)
@@ -332,7 +425,18 @@ public class CardCollectionController
         collectionDTO.setCategory(cardCollection.getCategory().getTitle());
         collectionDTO.setCardNum(cardCollection.getCardCount());
         collectionDTO.setVisibility(cardCollection.getVisibility());
+        collectionDTO.setOwner(cardCollection.getOwner().getUsername());
         return collectionDTO;
+    }
+
+    private CollectionDetailDTO convertToCollectionDetailDto(CardCollection cardCollection)
+    {
+        CollectionDetailDTO dto = modelMapper.map(cardCollection, CollectionDetailDTO.class);
+        dto.setCategory(cardCollection.getCategory().getTitle());
+        dto.setCardNum(cardCollection.getCardCount());
+        dto.setVisibility(cardCollection.getVisibility());
+        dto.setOwner(cardCollection.getOwner().getUsername());
+        return dto;
     }
 
     private CardCollection convertToEntity(CollectionDTO collectionDTO) throws ParseException

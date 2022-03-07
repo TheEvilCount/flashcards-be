@@ -29,4 +29,19 @@ public class UserDao extends BaseDao<User>
             return null;
         }
     }
+
+    public User findByUsername(String username)
+    {
+        try
+        {
+            //System.out.println(em.createQuery("select u from User u").getResultList());
+            return em.createNamedQuery("User.findByUsername", User.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+        }
+        catch (NoResultException e)
+        {
+            return null;
+        }
+    }
 }

@@ -39,10 +39,12 @@ public class UserService
     public User getUserByEmail(String email) throws UsernameNotFoundException
     {
         final User user = userDao.findByEmail(email);
-        /*if (user == null)
-        {
-            throw new UsernameNotFoundException("User with email " + email + " not found");
-        }*/
+        return user;
+    }
+
+    public User getUserByUsername(String username) throws UsernameNotFoundException
+    {
+        final User user = userDao.findByUsername(username);
         return user;
     }
 
@@ -113,30 +115,20 @@ public class UserService
 
     private void checkIfAccountAlreadyExists(User user) throws EntityAlreadyExistsException
     {
-        /*if (getAccountByUsername(user.getUsername()) != null) {
-            throw new EntityAlreadyExistsException("User name already taken!");
-        } else*/
-        if (getUserByEmail(user.getEmail()) != null)
+        if (getUserByUsername(user.getUsername()) != null)
         {
-            throw new EntityAlreadyExistsException("Email address " + user.getEmail() + " already taken!");
-        }/*
-        try
-        {
-            getUserByEmail(user.getEmail());
-            throw new EntityAlreadyExistsException("Email address already taken!");
+            throw new EntityAlreadyExistsException("User name %s already taken!".formatted(user.getUsername()));
         }
-        catch (UsernameNotFoundException e)
+        else if (getUserByEmail(user.getEmail()) != null)
         {
-            return;
-        }*/
-
+            throw new EntityAlreadyExistsException("Email address %s already taken!".formatted(user.getEmail()));
+        }
     }
 
     private void userValidation(User user) throws BadRequestException
     {
         Objects.requireNonNull(user);
 
-        //if(user.getFirstName() == null) throw new BadRequestException("First name cannot be null");
         if (user.getEmail() == null)
             throw new BadRequestException("Email cannot be null");
         if (user.getUsername() == null)

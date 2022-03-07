@@ -56,12 +56,9 @@ public class PasswordResetTokenService
     }
 
     @Transactional
-    public void update(PasswordResetToken token) throws BadRequestException, EntityAlreadyExistsException
+    public void update(PasswordResetToken token)
     {
         Objects.requireNonNull(token);
-
-        //TODO validation
-
         passwordResetTokenDao.update(token);
     }
 

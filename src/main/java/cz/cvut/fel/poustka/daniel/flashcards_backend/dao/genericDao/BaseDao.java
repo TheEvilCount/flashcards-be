@@ -190,4 +190,23 @@ public abstract class BaseDao<T> implements GenericDao<T>, SpecialDao<T>
         }
     }
 
+    @Override
+    public Long findNumberOf(Specification<T> s)
+    {
+        try
+        {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Long> q = cb.createQuery(Long.class);
+            Root<T> r = q.from(type);
+
+            q.select(cb.count(r)).where(s.toPredicate(r, q, cb));
+            TypedQuery<Long> query = em.createQuery(q);
+            return query.getSingleResult();//TODO might be problem when there is high number of entitites
+        }
+        catch (NoResultException e)
+        {
+            return null;
+        }
+    }
+
 }

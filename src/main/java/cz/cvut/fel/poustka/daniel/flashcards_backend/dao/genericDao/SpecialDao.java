@@ -13,4 +13,6 @@ public interface SpecialDao<T>
     List<T> findAll(Sorting sorting, Specification<T> s);
 
     List<T> findAll(Sorting sorting, Specification<T> s, Pageable page);
+
+    Long findNumberOf(Specification<T> s);
 }

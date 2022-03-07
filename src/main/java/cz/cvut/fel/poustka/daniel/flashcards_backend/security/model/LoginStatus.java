@@ -5,14 +5,14 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
 public class LoginStatus
 {
     private final boolean loggedIn;
-    private final String errorMessage;
+    private final String message;
     private final boolean success;
     private final User user;
 
-    public LoginStatus(boolean loggedIn, boolean success, User user, String errorMessage)
+    public LoginStatus(boolean loggedIn, boolean success, User user, String message)
     {
         this.loggedIn = loggedIn;
-        this.errorMessage = errorMessage;
+        this.message = message;
         this.success = success;
         this.user = user;
     }
@@ -22,9 +22,9 @@ public class LoginStatus
         return loggedIn;
     }
 
-    public String getErrorMessage()
+    public String getMessage()
     {
-        return errorMessage;
+        return message;
     }
 
     public boolean isSuccess()

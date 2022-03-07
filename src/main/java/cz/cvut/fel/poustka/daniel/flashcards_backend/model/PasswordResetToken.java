@@ -27,13 +27,13 @@ public class PasswordResetToken extends Token
     }
 
     @Override
-    public boolean isTokenExpired()
+    public boolean isTokenValid()
     {
         final long expireTime = OtherConstants.PASSWORD_RESET_TOKEN_EXPIRE;
         final long tempDateLong = this.createdDate.getTime() + expireTime;
         final Date expireDate = new Date(tempDateLong);
         final Date today = new Date();
-        return today.after(expireDate);
+        return !today.after(expireDate);
     }
 
 }

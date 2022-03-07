@@ -18,6 +18,8 @@ public class Token extends AbstractEntity
     @Column
     protected Date createdDate;
 
+    protected Boolean isValid;
+
 
     @OneToOne
     protected User user;
@@ -25,6 +27,7 @@ public class Token extends AbstractEntity
     public Token(User user)
     {
         this.user = user;
+        this.isValid = true;
         this.createdDate = new Date();
         this.token = UUID.randomUUID().toString();
     }
@@ -32,11 +35,20 @@ public class Token extends AbstractEntity
     public Token()
     {
         this.createdDate = new Date();
+        this.isValid = true;
         this.token = UUID.randomUUID().toString();
     }
 
-    public boolean isTokenExpired()
+    public void invalidateToken()
     {
+        this.isValid = false;
+    }
+
+    public boolean isTokenValid()
+    {
+        if (!isValid)
+            return false;
+
         final long expireTime = OtherConstants.PASSWORD_RESET_TOKEN_EXPIRE;
         final long tempDateLong = this.createdDate.getTime() + expireTime;
         final Date expireDate = new Date(tempDateLong);
@@ -46,7 +58,7 @@ public class Token extends AbstractEntity
         //System.err.println(tempDateLong +" -> exp: "+ expireDate);
         //System.err.println(today.getTime() +" -> today: "+ today);
 
-        return today.after(expireDate);
+        return !today.after(expireDate);
     }
 
     public String getToken()

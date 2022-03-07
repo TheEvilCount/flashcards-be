@@ -12,7 +12,8 @@ import java.util.List;
 @Entity
 @Table(name = "user_account")
 @NamedQueries({
-        @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email")
+        @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email"),
+        @NamedQuery(name = "User.findByUsername", query = "SELECT u FROM User u WHERE u.username = :username")
 })
 public class User extends AbstractEntity
 {
@@ -22,7 +23,7 @@ public class User extends AbstractEntity
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String username;
 
     @JsonIgnore

@@ -5,25 +5,24 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.rest.handler;
  */
 public class ErrorInfo
 {
-
-    private String errorMessage;
+    private String message;
 
     private String requestUri;
 
-    public ErrorInfo(String errorMessage, String requestUri)
+    public ErrorInfo(String message, String requestUri)
     {
-        this.errorMessage = errorMessage;
+        this.message = message;
         this.requestUri = requestUri;
     }
 
-    public String getErrorMessage()
+    public String getMessage()
     {
-        return errorMessage;
+        return message;
     }
 
-    public void setErrorMessage(String errorMessage)
+    public void setMessage(String message)
     {
-        this.errorMessage = errorMessage;
+        this.message = message;
     }
 
     public String getRequestUri()
@@ -39,6 +38,6 @@ public class ErrorInfo
     @Override
     public String toString()
     {
-        return "ErrorInfo{" + requestUri + ", errorMessage = " + errorMessage + "}";
+        return "ErrorInfo{" + requestUri + ", message = " + message + "}";
     }
 }

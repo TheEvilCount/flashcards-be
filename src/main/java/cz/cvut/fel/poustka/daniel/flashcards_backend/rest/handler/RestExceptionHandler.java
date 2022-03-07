@@ -30,7 +30,7 @@ public class RestExceptionHandler
 
     private static void logException(Exception ex)
     {
-        LOG.error("Exception caught:", ex);
+        LOG.error("Exception caught: " + ex.getMessage());
     }
 
     private static ErrorInfo errorInfo(HttpServletRequest request, Throwable e)
