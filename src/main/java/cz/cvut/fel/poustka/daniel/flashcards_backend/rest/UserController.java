@@ -241,7 +241,6 @@ public class UserController
             throw new ValidationException("Token cannot be empty");
     }
 
-
     private void sendVerificationEmail(User user, String token) throws MailSendException
     {
         try
