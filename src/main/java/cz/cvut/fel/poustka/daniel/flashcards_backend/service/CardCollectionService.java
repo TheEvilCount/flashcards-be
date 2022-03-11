@@ -169,7 +169,6 @@ public class CardCollectionService
         if (linkedCollectionList.size() > 0)
             throw new ValidationException("User already has this collection in favourites");
 
-        //TODO validation if user is not owner of this collection
         if (cardCollection.getOwner().equals(user))
             throw new ValidationException("User is owner of this collection. Cannot add to favourites");
 
@@ -182,6 +181,16 @@ public class CardCollectionService
 
         cardCollection.AddCounterFav();
         cardCollectionDao.update(cardCollection);
+    }
+
+    @Transactional
+    public void removeFromFavorite(LinkedCollection linkedCollection) throws BadRequestException
+    {
+        CardCollection original = linkedCollection.getCardCollection();
+        original.SubstractCounterFav();
+        this.update(original);
+
+        this.delete(linkedCollection);
     }
 
     @Transactional
@@ -255,7 +264,7 @@ public class CardCollectionService
     }
 
     @Transactional
-    public void update(CardCollection cardCollection) throws BadRequestException, EntityAlreadyExistsException
+    public void update(CardCollection cardCollection) throws BadRequestException
     {
         Objects.requireNonNull(cardCollection);
         cardCollectionValidation(cardCollection);

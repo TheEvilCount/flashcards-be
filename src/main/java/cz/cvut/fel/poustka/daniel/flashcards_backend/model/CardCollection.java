@@ -133,6 +133,11 @@ public class CardCollection extends AbstractEntity
         this.counterFav++;
     }
 
+    public void SubstractCounterFav()
+    {
+        this.counterFav--;
+    }
+
     //Getters & Setters
 
     public Integer getCardCount()

@@ -118,7 +118,7 @@ public class CardCollectionController
         ret.setCollections(toReturn.parallelStream().map(this::convertToDto).toList());
         ret.setPage(p);
         ret.setPageSize(ps);
-        if (!isPaginated)
+        if (isPaginated)
         {
             if (totalItems <= ps)
             {
@@ -222,7 +222,7 @@ public class CardCollectionController
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "/{id}/unfav")
     @ResponseStatus(HttpStatus.OK)
-    public void removeCollectionFromFavourite(@PathVariable Long id) throws EntityNotFoundException, NullPointerException
+    public void removeCollectionFromFavourite(@PathVariable Long id) throws EntityNotFoundException, NullPointerException, BadRequestException
     {
         User currentUser = userService.getCurrentUser();
 
@@ -231,7 +231,7 @@ public class CardCollectionController
         if (linkedCollection == null)
             throw new EntityNotFoundException("Favourite collection not found!");
 
-        cardCollectionService.delete(linkedCollection);
+        cardCollectionService.removeFromFavorite(linkedCollection);
         LOG.debug("Collection {} successfully removed from favourite.", linkedCollection);
     }
 
