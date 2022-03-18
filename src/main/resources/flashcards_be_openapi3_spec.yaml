@@ -1,0 +1,471 @@
+openapi: 3.0.0
+info:
+  title: FlashcardsBE
+  version: 1.0.0
+  contact:
+    name: Daniel Poustka
+    email: daniel.poustka@gmail.com
+servers:
+  - url: http://localhost:8081/v2
+components:
+  securitySchemes:
+    cookieAuth: # arbitrary name for the security scheme; will be used in the "security" key later
+      type: apiKey
+      in: cookie
+      name: JSESSIONID  # cookie name
+security:
+  - cookieAuth: [ ]
+tags:
+  - name: Auth
+  - name: Auth > Login
+  - name: Auth > Register
+  - name: Auth > Other
+  - name: Categories
+  - name: Collections
+paths:
+  /login:
+    post:
+      tags:
+        - Auth > Login
+      summary: Login with crendetials
+      security: [ ]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: tt@ggg.com
+                password:
+                  type: string
+                  example: 123456aA
+                remember:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Successful response with user data
+          content:
+            application/json: { }
+  /users/resend:
+    post:
+      tags:
+        - Auth > Other
+      summary: Resends verification email.
+      security: [ ]
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+          example: sampleemail.addressa@gmail.com
+      responses:
+        '200':
+          description: Successful response
+          content: { }
+  /users/register:
+    post:
+      tags:
+        - Auth > Register
+      summary: Register new user.
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: sampleemail.address@gmail.com
+                password: 123456Aa
+                username: newUsername
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: { }
+  /logout:
+    post:
+      tags:
+        - Auth > Other
+      summary: Logout user.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/lostpass:
+    post:
+      tags:
+        - Auth > Other
+      summary: Generates email with link to reset password.
+      security: [ ]
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+          example: someemail.address@gmail.com
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/resetpass:
+    post:
+      tags:
+        - Auth > Other
+      summary: Sets new password.
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ''
+      parameters:
+        - name: token
+          in: query
+          schema:
+            type: string
+          example: '51531s531s3s135v1sv1s3dvs32'
+        - name: newPassword
+          in: query
+          schema:
+            type: string
+          example: '123456789aaa'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/changepass:
+    put:
+      tags:
+        - Auth > Other
+      summary: Changes password to new one.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ''
+      parameters:
+        - name: oldPassword
+          in: query
+          schema:
+            type: string
+          example: '123456789'
+        - name: newPassword
+          in: query
+          schema:
+            type: string
+          example: '12345679sgbdhbd'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/verify:
+    post:
+      tags:
+        - Auth > Other
+      summary: Verify users email address by token.
+      security: [ ]
+      parameters:
+        - name: token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+    post:
+      tags:
+        - Categories
+      summary: Create new category.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: my category 2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/discover:
+    get:
+      tags:
+        - Collections
+      summary: Get pageable public collections (not owned).
+      parameters:
+        - name: title
+          in: query
+          schema:
+            type: string
+        - name: p
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: ps
+          in: query
+          schema:
+            type: integer
+          example: '60'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections:
+    post:
+      tags:
+        - Collections
+      summary: Create new collection.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: my public collection 2
+                collectionColor: gray
+                visibility: PUBLIC
+                category:
+                  id: '4'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+    get:
+      tags:
+        - Collections
+      summary: Get FAVOURITE collections with pagination.
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: integer
+          example: '2'
+        - name: p
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: ps
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/cards:
+    post:
+      tags:
+        - Collections
+      summary: Create card within collection.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                frontText: Is grass black?
+                backText: 'No'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+    get:
+      tags:
+        - Collections
+      summary: Get cards within collection.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/unfav:
+    post:
+      tags:
+        - Collections
+      summary: Remove collection from favourite collections.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content: { }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/fav:
+    post:
+      tags:
+        - Collections
+      summary: Add collection to favourite collections.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content: { }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/publish:
+    post:
+      tags:
+        - Collections
+      summary: Make private collection public.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content: { }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/privatize:
+    post:
+      tags:
+        - Collections
+      summary: Make public collection PRIVATE
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content: { }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}/duplicate:
+    post:
+      tags:
+        - Collections
+      summary: Duplicate collection to private collections.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        content: { }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /collections/{id}:
+    delete:
+      tags:
+        - Collections
+      summary: Delete collection by id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of collection.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/current:
+    get:
+      tags:
+        - General
+      summary: Get logged user data.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/updateprefs:
+    put:
+      tags:
+        - General
+      summary: Change user preferences.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                darkmode: false
+                flipLeft: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
