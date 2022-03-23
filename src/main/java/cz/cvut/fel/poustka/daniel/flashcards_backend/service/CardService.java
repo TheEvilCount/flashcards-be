@@ -42,17 +42,9 @@ public class CardService
 
 
     @Transactional
-    public void duplicateCard(Card card)
-    {
-        //TODO
-    }
-
-    @Transactional
     public void persist(Card card) throws EntityAlreadyExistsException, BadRequestException, ValidationException
     {
-        //TODO validation
         cardValidation(card);
-
         cardDao.persist(card);
     }
 
@@ -60,9 +52,7 @@ public class CardService
     public void update(Card card) throws BadRequestException, EntityAlreadyExistsException
     {
         Objects.requireNonNull(card);
-
-        //TODO validation
-
+        cardValidation(card);
         cardDao.update(card);
     }
 
@@ -70,7 +60,6 @@ public class CardService
     public void delete(Card card)
     {
         Objects.requireNonNull(card);
-
         cardDao.remove(card);
     }
 

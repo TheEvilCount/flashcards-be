@@ -1,6 +1,7 @@
 package cz.cvut.fel.poustka.daniel.flashcards_backend.service;
 
 import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.UserDao;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.dao.filtering.Sorting;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationException;
@@ -55,9 +56,21 @@ public class UserService
     }
 
     @Transactional(readOnly = true)
+    public User getById(Long id)
+    {
+        return this.userDao.find(id);
+    }
+
+    @Transactional(readOnly = true)
     public List<User> getAll()
     {
         return this.userDao.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> getAllAdmins()
+    {
+        return this.userDao.findAll(new Sorting(), UserDao.ByRole(Role.ADMIN));
     }
 
     @Transactional

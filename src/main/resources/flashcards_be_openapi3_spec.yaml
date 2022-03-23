@@ -6,7 +6,7 @@ info:
     name: Daniel Poustka
     email: daniel.poustka@gmail.com
 servers:
-  - url: http://localhost:8081/v2
+  - url: http://localhost:8081/v1
 components:
   securitySchemes:
     cookieAuth: # arbitrary name for the security scheme; will be used in the "security" key later
@@ -464,6 +464,44 @@ paths:
               example:
                 darkmode: false
                 flipLeft: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/admins:
+    get:
+      tags:
+        - General
+      summary: Get all admin accounts (only for admins).
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users:
+    get:
+      tags:
+        - General
+      summary: Get all registered accounts (only for admins).
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: { }
+  /users/{id}/promote:
+    post:
+      tags:
+        - General
+      summary: Promote user to admin role (only for admins).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of user.
+          schema:
+            type: integer
+            minimum: 1
       responses:
         '200':
           description: Successful response

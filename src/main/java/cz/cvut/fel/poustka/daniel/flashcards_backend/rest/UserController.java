@@ -67,6 +67,35 @@ public class UserController
         return result;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(value = "/admins", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<User> getAllAdmins()
+    {
+        List<User> result = userService.getAllAdmins();
+
+        if (result == null)
+        {
+            throw new EntityNotFoundException("No Admin was found");
+        }
+
+        return result;
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping(value = "/{id}/promote")
+    @ResponseStatus(HttpStatus.OK)
+    public void promoteUser(@PathVariable Long id) throws ValidationException, EntityNotFoundException
+    {
+        User userToPromote = userService.getById(id);
+
+        if (userToPromote == null)
+            throw new EntityNotFoundException("User to promote not found");
+        if (userToPromote.isAdmin())
+            throw new ValidationException("Account is already administrator");
+
+        userService.setAdmin(userToPromote);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/current", produces = MediaType.APPLICATION_JSON_VALUE)
     public User getCurrentUser(@CurrentUser UserDetailsImpl userDetailsImpl)

@@ -52,8 +52,8 @@ public class SystemInitializer
     private void generateAdmin1()
     {
         User admin = new User();
-        admin.setEmail("tt@ggg.com");
-        admin.setPassword("123456aA");
+        admin.setEmail("*****");
+        admin.setPassword("*****");
         admin.setUsername("Admin");
         admin.setRegistrationDate(Date.valueOf(LocalDate.now()));
         admin.setRole(Role.ADMIN);
