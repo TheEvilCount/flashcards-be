@@ -18,8 +18,8 @@ public class Token extends AbstractEntity
     @Column
     protected Date createdDate;
 
+    @Column
     protected Boolean isValid;
-
 
     @OneToOne
     protected User user;
@@ -41,7 +41,8 @@ public class Token extends AbstractEntity
 
     public void invalidateToken()
     {
-        this.isValid = false;
+        setValid(false);
+        setCreatedDate(new Date(this.createdDate.getTime() - OtherConstants.PASSWORD_RESET_TOKEN_EXPIRE));
     }
 
     public boolean isTokenValid()
@@ -89,5 +90,15 @@ public class Token extends AbstractEntity
     public void setUser(User user)
     {
         this.user = user;
+    }
+
+    public Boolean getValid()
+    {
+        return isValid;
+    }
+
+    public void setValid(Boolean valid)
+    {
+        isValid = valid;
     }
 }

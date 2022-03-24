@@ -56,12 +56,10 @@ public class VerificationTokenService
     }
 
     @Transactional
-    public void update(VerificationToken token) throws BadRequestException, EntityAlreadyExistsException
+    public void update(VerificationToken token)
     {
         Objects.requireNonNull(token);
-
         //TODO validation
-
         verificationTokenDao.update(token);
     }
 

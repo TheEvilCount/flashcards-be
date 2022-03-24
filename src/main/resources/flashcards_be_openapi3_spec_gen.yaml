@@ -1,0 +1,781 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://localhost:8081/flashcards/api/v1
+    description: Generated server url
+paths:
+  /users/updateprefs:
+    put:
+      tags:
+        - user-controller
+      operationId: updatePreferences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferenciesDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/changepass:
+    put:
+      tags:
+        - user-controller
+      operationId: changePassword
+      parameters:
+        - name: oldPassword
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: newPassword
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/User'
+  /collections/{id}:
+    get:
+      tags:
+        - card-collection-controller
+      operationId: getCollectionDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CollectionDetailDTO'
+    put:
+      tags:
+        - card-collection-controller
+      operationId: updateCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionUpdateDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+        - card-collection-controller
+      operationId: removeCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: No Content
+  /collections/{collectionId}/cards/{cardId}:
+    get:
+      tags:
+        - card-collection-controller
+      operationId: getCardInCardCollection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Card'
+    put:
+      tags:
+        - card-collection-controller
+      operationId: updateCardInCollection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+        - card-collection-controller
+      operationId: deleteCardInCardCollection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /categories/{id}:
+    get:
+      tags:
+        - card-category-controller
+      operationId: getGenre
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionCategory'
+    put:
+      tags:
+        - card-category-controller
+      operationId: changeCollectionCategoryTitle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: newTitle
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CollectionCategory'
+    delete:
+      tags:
+        - card-category-controller
+      operationId: removeCollectionCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: No Content
+  /users/{id}/promote:
+    post:
+      tags:
+        - user-controller
+      operationId: promoteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /users/verify:
+    post:
+      tags:
+        - user-controller
+      operationId: verifyAccount
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /users/resetpass:
+    post:
+      tags:
+        - user-controller
+      operationId: resetPassword
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: newPassword
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /users/resend:
+    post:
+      tags:
+        - user-controller
+      operationId: resendVerificationToken
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /users/register:
+    post:
+      tags:
+        - user-controller
+      operationId: registerAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDTO'
+        required: true
+      responses:
+        '201':
+          description: Created
+  /users/lostpass:
+    post:
+      tags:
+        - user-controller
+      operationId: lostPassword
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /collections:
+    get:
+      tags:
+        - card-collection-controller
+      operationId: getCollections
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: p
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: ps
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CollectionWithPgDTO'
+    post:
+      tags:
+        - card-collection-controller
+      operationId: createCardCollection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCreateDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+  /collections/{id}/unfav:
+    post:
+      tags:
+        - card-collection-controller
+      operationId: removeCollectionFromFavourite
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /collections/{id}/publish:
+    post:
+      tags:
+        - card-collection-controller
+      operationId: publishCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /collections/{id}/privatize:
+    post:
+      tags:
+        - card-collection-controller
+      operationId: privatizeCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /collections/{id}/fav:
+    post:
+      tags:
+        - card-collection-controller
+      operationId: addCollectionToFavourite
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /collections/{id}/duplicate:
+    post:
+      tags:
+        - card-collection-controller
+      operationId: duplicateCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+  /collections/{collectionId}/cards:
+    get:
+      tags:
+        - card-collection-controller
+      operationId: getCardsInCardCollection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+    post:
+      tags:
+        - card-collection-controller
+      operationId: createCardInCardCollection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Card'
+        required: true
+      responses:
+        '200':
+          description: OK
+  /categories:
+    get:
+      tags:
+        - card-category-controller
+      operationId: getAllCollectionCategories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollectionCategory'
+    post:
+      tags:
+        - card-category-controller
+      operationId: createCollectionCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCategory'
+        required: true
+      responses:
+        '200':
+          description: OK
+  /users:
+    get:
+      tags:
+        - user-controller
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /users/current:
+    get:
+      tags:
+        - user-controller
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/admins:
+    get:
+      tags:
+        - user-controller
+      operationId: getAllAdmins
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /collections/discover:
+    get:
+      tags:
+        - card-collection-controller
+      operationId: discoverCollections
+      parameters:
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: p
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: ps
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CollectionWithPgDTO'
+components:
+  schemas:
+    PreferenciesDTO:
+      type: object
+      properties:
+        preferences:
+          type: string
+    CardCollection:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        collectionColor:
+          type: string
+        counterFav:
+          type: integer
+          format: int64
+        counterDup:
+          type: integer
+          format: int64
+        visibility:
+          type: string
+          enum:
+            - PRIVATE
+            - PUBLIC
+            - LINKED
+        creationDate:
+          type: string
+          format: date-time
+        category:
+          $ref: '#/components/schemas/CollectionCategory'
+        cardCount:
+          type: integer
+          format: int32
+    CollectionCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        role:
+          type: string
+          enum:
+            - ROLE_ADMIN
+            - ROLE_USER
+        email:
+          type: string
+        username:
+          type: string
+        preferences:
+          type: string
+        admin:
+          type: boolean
+    CollectionUpdateDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        collectionColor:
+          type: string
+        category:
+          type: string
+    CardDTO:
+      type: object
+      properties:
+        frontText:
+          type: string
+        backText:
+          type: string
+    RegisterDTO:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+    CollectionCreateDTO:
+      type: object
+      properties:
+        title:
+          type: string
+        collectionColor:
+          type: string
+        visibility:
+          type: string
+        category:
+          type: string
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        frontText:
+          type: string
+        backText:
+          type: string
+        collection:
+          $ref: '#/components/schemas/CardCollection'
+        user:
+          $ref: '#/components/schemas/User'
+        enabled:
+          type: boolean
+        password:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+    CollectionDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        collectionColor:
+          type: string
+        counterFav:
+          type: integer
+          format: int64
+        counterDup:
+          type: integer
+          format: int64
+        cardNum:
+          type: integer
+          format: int32
+        visibility:
+          type: string
+          enum:
+            - PRIVATE
+            - PUBLIC
+            - LINKED
+        category:
+          type: string
+        owner:
+          type: string
+    CollectionWithPgDTO:
+      type: object
+      properties:
+        maxPages:
+          type: integer
+          format: int32
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionDTO'
+    CollectionDetailDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        collectionColor:
+          type: string
+        counterFav:
+          type: integer
+          format: int64
+        counterDup:
+          type: integer
+          format: int64
+        cardNum:
+          type: integer
+          format: int32
+        visibility:
+          type: string
+          enum:
+            - PRIVATE
+            - PUBLIC
+            - LINKED
+        cardList:
+          type: array
+          items:
+            $ref: '#/components/schemas/Card'
+        category:
+          type: string
+        owner:
+          type: string

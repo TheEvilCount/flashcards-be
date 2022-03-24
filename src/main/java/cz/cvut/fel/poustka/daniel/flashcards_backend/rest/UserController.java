@@ -172,7 +172,7 @@ public class UserController
     {
         if (!Objects.equals(token, ""))
         {
-            final VerificationToken verificationToken = verificationTokenService.getByToken(token);
+            VerificationToken verificationToken = verificationTokenService.getByToken(token);
             if (verificationToken != null && verificationToken.isTokenValid())
             {
                 User user = userService.getUserByEmail(verificationToken.getUser().getEmail());
@@ -180,6 +180,8 @@ public class UserController
                     throw new ValidationException("User account " + user.getEmail() + " is already verified");
                 user.setIsActivated(true);
                 userService.update(user);
+                verificationToken.invalidateToken();
+                verificationTokenService.update(verificationToken);
                 return new ResponseEntity<>(HttpStatus.OK);
             }
             else
@@ -246,7 +248,7 @@ public class UserController
     {
         if (!Objects.equals(token, ""))
         {
-            final PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
+            PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
             if (passwordResetToken != null && passwordResetToken.isTokenValid())
             {
                 User user = userService.getUserByEmail(passwordResetToken.getUser().getEmail());
@@ -264,7 +266,7 @@ public class UserController
                 }
             }
             else
-                throw new ValidationException("Token {" + token + "} is invalid or expired reset token!");
+                throw new ValidationException("Token is invalid or expired reset token!");
         }
         else
             throw new ValidationException("Token cannot be empty");
