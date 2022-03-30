@@ -65,7 +65,7 @@ public class User extends AbstractEntity
         ownedCollectionList = new ArrayList<>();
         this.isActivated = false;
         this.role = Role.USER;
-        this.preferences = "{}";
+        //this.preferences = "{}";
     }
 
     public User(String email, String username, String password, Date registrationDate, List<LinkedCollection> linkedCollectionList)
@@ -78,7 +78,7 @@ public class User extends AbstractEntity
             this.linkedCollectionList = new ArrayList<>();
 
         this.role = Role.USER;
-        this.preferences = "{}";
+        //this.preferences = "{}";
         this.isActivated = false;
 
         this.email = email;

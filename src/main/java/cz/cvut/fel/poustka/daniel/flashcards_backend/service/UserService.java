@@ -87,8 +87,8 @@ public class UserService
         emailValidation(user.getEmail());
         usernameValidation(user.getUsername());
         preferencesValidation(user.getPreferences());
-        user.setRegistrationDate(new Date());
 
+        user.setRegistrationDate(new Date());
         user.encodePassword(passwordEncoder);
 
         userDao.persist(user);

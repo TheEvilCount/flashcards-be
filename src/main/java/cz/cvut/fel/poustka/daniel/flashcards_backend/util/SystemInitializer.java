@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.PostConstruct;
 import java.sql.Date;
@@ -21,7 +20,6 @@ import java.time.LocalDate;
 @Component
 public class SystemInitializer
 {
-
     private static final Logger LOG = LoggerFactory.getLogger(SystemInitializer.class);
 
     private final UserService userService;
@@ -36,14 +34,11 @@ public class SystemInitializer
     }
 
     @PostConstruct
-    private void initSystem()
+    private void init()
     {
-        TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-        txTemplate.execute((status) -> {
-            System.out.println("_________INIT___________");
-            generateAdmin1();
-            return null;
-        });
+        System.out.println("_________INIT___________");
+        LOG.info("_________INIT___________");
+        generateAdmin1();
     }
 
     /**
@@ -66,10 +61,15 @@ public class SystemInitializer
         }
         catch (EntityAlreadyExistsException ignored)
         {
+            LOG.info("Default admin alerady exists");
         }
         catch (BadRequestException | ValidationException e)
         {
             LOG.warn("Admin Generation error: " + e.getMessage());
+        }
+        catch (Exception e)
+        {
+            LOG.error("Initializer exception: " + e.getMessage());
         }
     }
 
