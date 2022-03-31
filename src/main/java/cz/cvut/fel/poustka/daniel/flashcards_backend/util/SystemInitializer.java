@@ -4,18 +4,20 @@ package cz.cvut.fel.poustka.daniel.flashcards_backend.util;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.BadRequestException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.EntityAlreadyExistsException;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.exceptions.ValidationException;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.model.CollectionCategory;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.Role;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.model.User;
+import cz.cvut.fel.poustka.daniel.flashcards_backend.service.CollectionCategoryService;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.annotation.PostConstruct;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class SystemInitializer
@@ -23,22 +25,22 @@ public class SystemInitializer
     private static final Logger LOG = LoggerFactory.getLogger(SystemInitializer.class);
 
     private final UserService userService;
-
-    private final PlatformTransactionManager txManager;
+    private final CollectionCategoryService categoryService;
 
     @Autowired
-    public SystemInitializer(UserService userService, PlatformTransactionManager txManager)
+    public SystemInitializer(UserService userService, CollectionCategoryService categoryService)
     {
-        this.txManager = txManager;
+        this.categoryService = categoryService;
         this.userService = userService;
     }
 
     @PostConstruct
     private void init()
     {
-        System.out.println("_________INIT___________");
         LOG.info("_________INIT___________");
         generateAdmin1();
+        generateDefaultCategories();
+        LOG.info("_________INIT-DONE___________");
     }
 
     /**
@@ -69,8 +71,36 @@ public class SystemInitializer
         }
         catch (Exception e)
         {
-            LOG.error("Initializer exception: " + e.getMessage());
+            LOG.error("Initializer admin exception: " + e.getMessage());
         }
     }
 
+    private void generateDefaultCategories()
+    {
+        List<String> list = List.of("Language", "Medical", "Computers", "Education", "History", "Other", "Fun", "Exam", "Military", "Law");
+        CollectionCategory cat = categoryService.getByTitle(list.get(0));
+        if (cat != null)
+        {
+            LOG.info("Generate categories SKIP");
+        }
+        else
+        {
+            try
+            {
+                for (String el : list)
+                {
+                    categoryService.persist(new CollectionCategory(el));
+                }
+                LOG.info("Generated default categories");
+            }
+            catch (EntityAlreadyExistsException ignored)
+            {
+                LOG.info("Default categories already exists");
+            }
+            catch (Exception e)
+            {
+                LOG.error("Initializer categories exception: " + e.getMessage());
+            }
+        }
+    }
 }

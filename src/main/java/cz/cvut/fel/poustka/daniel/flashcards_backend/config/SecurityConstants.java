@@ -8,7 +8,7 @@ public class SecurityConstants
     public static final String PASSWORD_PARAM = "password";
     public static final String SECURITY_CHECK_URI = "/login";
     public static final String LOGOUT_URI = "/logout";
-    public static final String COOKIE_URI = "/flashcards/api/v1";
+    //public static final String COOKIE_URI = "/flashcards/api/v1";
 
     /**
      * Session timeout in seconds.

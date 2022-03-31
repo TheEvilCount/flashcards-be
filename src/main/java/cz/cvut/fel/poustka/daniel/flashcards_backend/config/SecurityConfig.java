@@ -4,7 +4,6 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CredentialsAuthent
 import cz.cvut.fel.poustka.daniel.flashcards_backend.security.CredentialsAuthenticationSuccessHandler;
 import cz.cvut.fel.poustka.daniel.flashcards_backend.service.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -42,9 +41,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
 
     private final UserDetailsServiceImpl userDetailsService;
 
-    @Value("${flashcards.fe.url}")
-    private String flashcardsUrl;
-
     @Autowired
     public SecurityConfig(CredentialsAuthenticationFailureHandler credentialsAuthenticationFailureHandlerHandler,
                           CredentialsAuthenticationSuccessHandler credentialsAuthenticationSuccessHandlerHandler,
@@ -76,7 +72,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter
     public CorsConfigurationSource corsConfigurationSource()
     {
         CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
-        configuration.setAllowedOrigins(List.of(flashcardsUrl));
+        configuration.setAllowedOrigins(List.of(OtherConstants.FLASHCARDS_FE_URL));
         configuration.setAllowedMethods(List.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
         // setAllowCredentials(true) is important, otherwise:
         // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the
