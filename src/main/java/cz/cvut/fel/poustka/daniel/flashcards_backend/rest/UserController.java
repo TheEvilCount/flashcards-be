@@ -279,7 +279,7 @@ public class UserController
             emailService.sendMail(user.getEmail(),
                                   "Registration",
                                   "To activate your account please click here: "
-                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_PATHS_VERIFY +
+                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_CONTEXT + OtherConstants.FLASHCARDS_FE_PATHS_VERIFY +
                                           "?token=" + token);
         }
         catch (MailException e)
@@ -295,7 +295,7 @@ public class UserController
             emailService.sendMail(user.getEmail(),
                                   "Password reset",
                                   "To reset your password please click here: "
-                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_PATHS_RESET +
+                                          + OtherConstants.FLASHCARDS_FE_URL + OtherConstants.FLASHCARDS_FE_CONTEXT + OtherConstants.FLASHCARDS_FE_PATHS_RESET +
                                           "?token=" + token);
         }
         catch (MailException e)

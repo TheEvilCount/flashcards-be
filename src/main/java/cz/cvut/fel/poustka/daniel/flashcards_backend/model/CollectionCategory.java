@@ -19,13 +19,10 @@ public class CollectionCategory extends AbstractEntity
     private List<CardCollection> collectionList;
 
 
-    public CollectionCategory(String title, List<CardCollection> collectionList)
+    public CollectionCategory(String title)
     {
         this.title = title;
-        if (collectionList != null)
-            this.collectionList = collectionList;
-        else
-            this.collectionList = new ArrayList<>();
+        this.collectionList = new ArrayList<>();
     }
 
     public CollectionCategory()

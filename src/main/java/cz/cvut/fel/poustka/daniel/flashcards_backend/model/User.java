@@ -8,6 +8,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user_account")
@@ -48,7 +49,7 @@ public class User extends AbstractEntity
      * User frontend customization configuration like left/right card rotation, colorTheme,...
      * Its JSON object saved as String.
      */
-    @Column(columnDefinition = "json")
+    @Column
     private String preferences;
 
     @JsonBackReference
@@ -65,20 +66,17 @@ public class User extends AbstractEntity
         ownedCollectionList = new ArrayList<>();
         this.isActivated = false;
         this.role = Role.USER;
-        //this.preferences = "{}";
+        this.preferences = "{}";
     }
 
     public User(String email, String username, String password, Date registrationDate, List<LinkedCollection> linkedCollectionList)
     {
         ownedCollectionList = new ArrayList<>();
 
-        if (linkedCollectionList != null)
-            this.linkedCollectionList = linkedCollectionList;
-        else
-            this.linkedCollectionList = new ArrayList<>();
+        this.linkedCollectionList = Objects.requireNonNullElseGet(linkedCollectionList, ArrayList::new);
 
         this.role = Role.USER;
-        //this.preferences = "{}";
+        this.preferences = "{}";
         this.isActivated = false;
 
         this.email = email;

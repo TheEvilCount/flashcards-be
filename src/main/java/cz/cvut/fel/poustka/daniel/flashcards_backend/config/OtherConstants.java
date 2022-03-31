@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 public class OtherConstants
 {
     public static String FLASHCARDS_FE_URL;
+    public static String FLASHCARDS_FE_CONTEXT;
     public static long VERIFICATION_TOKEN_EXPIRE;
     public static long PASSWORD_RESET_TOKEN_EXPIRE;
     public static String FLASHCARDS_BE_URL;
@@ -22,6 +23,12 @@ public class OtherConstants
     public void setFLASHCARDS_FE_URL(String value)
     {
         FLASHCARDS_FE_URL = value;
+    }
+
+    @Value("${flashcards.fe.context}")
+    public void setFLASHCARDS_FE_CONTEXT(String value)
+    {
+        FLASHCARDS_FE_CONTEXT = value;
     }
 
     @Value("${flashcards.be.verificationToken.expireMs}")
