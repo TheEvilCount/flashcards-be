@@ -12,6 +12,7 @@ import cz.cvut.fel.poustka.daniel.flashcards_backend.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -43,15 +44,22 @@ public class SystemInitializer
         LOG.info("_________INIT-DONE___________");
     }
 
+    @Value("${flashcards.admin.username}")
+    private String defaultAdminUsername;
+    @Value("${flashcards.admin.email}")
+    private String defaultAdminEmail;
+    @Value("${flashcards.admin.psw}")
+    private String defaultAdminPassword;
+
     /**
      * Generates an admin account if it does not already exist.
      */
     private void generateAdmin1()
     {
         User admin = new User();
-        admin.setEmail("*****");
-        admin.setPassword("*****");
-        admin.setUsername("Admin");
+        admin.setEmail(defaultAdminEmail);
+        admin.setPassword(defaultAdminPassword);
+        admin.setUsername(defaultAdminUsername);
         admin.setRegistrationDate(Date.valueOf(LocalDate.now()));
         admin.setRole(Role.ADMIN);
         admin.setIsActivated(true);
@@ -63,7 +71,7 @@ public class SystemInitializer
         }
         catch (EntityAlreadyExistsException ignored)
         {
-            LOG.info("Default admin alerady exists");
+            LOG.info("Default admin already exists");
         }
         catch (BadRequestException | ValidationException e)
         {
